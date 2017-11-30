@@ -21,12 +21,12 @@ module.exports = async function() {
     if (!await daysCollection.indexExists("date_ttl")) {
         await daysCollection.createIndex(
             {
-                date: 1,
+                date: 1
             },
             {
                 name: "date_ttl",
                 unique: true,
-                expireAfterSeconds: 60 * 60 * 24 * 14,
+                expireAfterSeconds: 60 * 60 * 24 * 14
             }
         );
     }
@@ -40,7 +40,7 @@ module.exports = async function() {
             .insertOne({
                 name: name,
                 password: null,
-                salt: null,
+                salt: null
             })
             .then(() => {
                 return changeAdminPassword(name, password);
@@ -57,13 +57,13 @@ module.exports = async function() {
 
         return await adminCollection.updateOne(
             {
-                name: name,
+                name: name
             },
             {
                 $set: {
                     password: passwordDigest,
-                    salt: salt,
-                },
+                    salt: salt
+                }
             }
         );
     }
@@ -77,24 +77,27 @@ module.exports = async function() {
             text: text,
             submitted: new Date(Date.now()),
             status: "pending",
-            emails: [],
+            emails: []
         });
     }
-    /*async function getBookingMonth(yearmonth){
-    db.collection("bookings")find(
-
-    )
-  }*/
+    /*db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))
+    db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))
+find({date:{$gt:(start),$lte:(end)}})
+*/
+    async function getBookingMonth(start, end) {
+        const bookings = bookingsCollection.find({ date: { $gt: start, $lte: end } });
+        return await bookings.toArray();
+    }
 
     async function changeBookingStatus(id, status) {
         bookingsCollection.updateOne(
             {
-                _id: ObjectID(id),
+                _id: ObjectID(id)
             },
             {
                 $set: {
-                    status: status,
-                },
+                    status: status
+                }
             }
         );
     }
@@ -109,7 +112,7 @@ module.exports = async function() {
 
     async function dayAvailable(date) {
         let result = await daysCollection.find({
-            date: date,
+            date: date
         });
 
         if ((await result.count()) < 1) {
@@ -122,12 +125,12 @@ module.exports = async function() {
     async function markDayAsFull(date, full = true) {
         daysCollection.updateOne(
             {
-                date: date,
+                date: date
             },
             {
                 $set: {
-                    full: full,
-                },
+                    full: full
+                }
             }
         );
     }
@@ -145,11 +148,12 @@ module.exports = async function() {
         getBookingsOnDate: getBookingsOnDate,
         dayAvailable: dayAvailable,
         markDayAsFull: markDayAsFull,
+        getBookingMonth: getBookingMonth,
         debug: {
             db: db,
             bookings: bookingsCollection,
             admins: adminCollection,
-            days: daysCollection,
-        },
+            days: daysCollection
+        }
     };
 };
