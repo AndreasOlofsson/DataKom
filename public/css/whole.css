@@ -1,0 +1,51 @@
+#back-button {
+  height: 32px;
+  width: 100px;
+  border: 1px solid black;
+  border-radius: 2px;
+  color: black;
+  background-color: #F0F0F0;
+}
+#back-button:hover {
+  background-color: #FF7F7F;
+}
+
+.booking-button {
+  height: 32px;
+  width: 90%;
+  margin-bottom: 2px;
+
+  border: 1px solid black;
+  border-radius: 2px;
+
+  color: black;
+  background-color: #F0F0F0;
+}
+
+.booking-button:hover {
+  background-color: white;
+  background-color: #F0FFF0;
+}
+
+.list-container {
+
+
+}
+
+.lists {
+  float: left;
+  width: 40%;
+  margin-right: 10px;
+  padding: 5px;
+
+  border: 1px solid black;
+  border-radius: 2px;
+  background-color: #F0F0F0;
+}
+
+.lists > h2 {
+  color: #404040;
+}
+
+#unconfirmed-list #confirmed-list {
+}

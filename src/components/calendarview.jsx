@@ -15,8 +15,12 @@ class CalendarView extends React.Component {
   render() {
     return (<Calendar year={this.state.date.getFullYear()}
                       month={this.state.date.getMonth() + 1}
-                      onDaySelected={(date) => console.log(date)}
-                      //transformDate
+                      onDaySelected={(date) => this.props.onClick(date)}
+              //        transformDate={(calendarDate) => {
+              //            if (calendarDate.getDate() ...) {
+              //                calendarDate.setStatusColor("#FF0000");
+              //            }
+              //        }}
                       //Locale
     />);
   }
