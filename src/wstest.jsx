@@ -4,7 +4,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import { Locale } from "./lib/locale";
-import { Calendar } from "./components/Calendar.jsx";
+import { Calendar } from "./components/calendar.jsx";
 
 import { WSInterface } from "./lib/wsInterface";
 
@@ -17,17 +17,15 @@ if (!Locale.isDefaultLocaleSet()) {
 class App extends React.Component {
     constructor(props) {
         super(props);
-        
+
         this.state = {
             date: new Date(Date.now())
         };
     }
-    
+
     render() {
         return (
-            <Calendar year={ this.state.date.getFullYear() }
-                      month={ this.state.date.getMonth()+1 }
-                      onDaySelected={ (date) => console.log(date) }
+            <Calendar onDaySelected={ (date) => console.log(date) }
                       transformDate={ (calendarDate) => {
                           const date = calendarDate.getDate();
                           ws.send({
