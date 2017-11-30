@@ -54,8 +54,8 @@ class Calendar extends React.Component {
         }
 
         this.setState({
-            year: nextProps.year,
-            month: nextProps.month,
+            year: nextProps.year || this.state.year,
+            month: nextProps.month || this.state.month,
             locale: nextProps.locale,
             startOfWeek: startOfWeek
         });
