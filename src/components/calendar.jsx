@@ -7,9 +7,9 @@ import { Locale } from "../lib/locale.js";
 class Calendar extends React.Component {
     constructor(props) {
         super(props);
-        
+
         let startOfWeek = Calendar.getStartOfWeek();
-        
+
         if (this.props.startOfWeek) {
             startOfWeek = {
                 "mon":  0, "monday":    0, "0":   0,
@@ -20,16 +20,18 @@ class Calendar extends React.Component {
                 startOfWeek = nextProps.startOfWeek;
             }
         }
-        
+
+        const now = new Date(Date.now());
+
         this.state = {
-            year: props.year,
-            month: props.month,
+            year: props.year || now.getFullYear(),
+            month: props.month || now.getMonth() + 1,
             locale: props.locale,
             startOfWeek: startOfWeek,
             calendarDates: {}
         };
     }
-    
+
     componentWillReceiveProps(nextProps) {
         let startOfWeek = this.state.startOfWeek;
 
@@ -50,17 +52,17 @@ class Calendar extends React.Component {
         } else if (nextProps.locale) {
             startOfWeek = Calendar.getStartOfWeek(nextProps.locale);
         }
-        
+
         this.setState({
             year: nextProps.year,
             month: nextProps.month,
             locale: nextProps.locale,
             startOfWeek: startOfWeek
         });
-        
+
         return true;
     }
-    
+
     render() {
         let viewStartDate = new Date(this.state.year, this.state.month-1);
         viewStartDate.setDate(
@@ -73,9 +75,9 @@ class Calendar extends React.Component {
         current.setMinutes(0);
         current.setSeconds(0);
         current.setMilliseconds(0);
-        
+
         const selectedDate = this.state.selectedDate;
-        
+
         return (
             <table className="calendar">
                 <thead className="calendar-header">
@@ -118,7 +120,7 @@ class Calendar extends React.Component {
                 </tbody>
             </table>
         );
-        
+
         function renderRow(startDate) {
             return (
                 <tr key={ startDate } className="calendar-week">
@@ -134,19 +136,19 @@ class Calendar extends React.Component {
                 </tr>
             );
         }
-        
+
         function renderDate(date) {
             const isCurrent = date.getTime() === current.getTime();
 
             const isCurrentMonth =
                 this.state.year === date.getFullYear() &&
                 this.state.month - 1 === date.getMonth();
-            
+
             const isSelected =
                 selectedDate && selectedDate.getTime() === date.getTime();
-            
+
             let calendarDate = this.state.calendarDates[date.getTime()];
-            
+
             if (!calendarDate) {
                 calendarDate = new Calendar.CalendarDate(this, date);
                 if (this.props.transformDate) {
@@ -154,7 +156,7 @@ class Calendar extends React.Component {
                     this.state.calendarDates[date.getTime()] = calendarDate;
                 }
             }
-            
+
             return (
                 <td key={date}
                     className={
@@ -189,7 +191,7 @@ class Calendar extends React.Component {
             );
         }
     }
-    
+
     prevMonth() {
         this.setState({
             year: this.state.year - (this.state.month === 1 ? 1 : 0),
@@ -203,25 +205,25 @@ class Calendar extends React.Component {
             month: this.state.month === 12 ? 1 : this.state.month + 1
         });
     }
-    
+
     daySelected(event, date) {
         this.setState({
             selectedDate: date
         });
-        
+
         if (this.props.onDaySelected) {
             this.props.onDaySelected(date);
         }
     }
-    
+
     static getStartOfWeek(locale = Locale.getDefaultLocale()) {
         if (locale.getTerritory() === "US") {
             return -1;
         }
-        
+
         return 0;
     }
-    
+
     static getMonthName(month, locale = Locale.getDefaultLocale()) {
         switch (locale.getLanguage()) {
             case 'sv':
@@ -240,7 +242,7 @@ class Calendar extends React.Component {
                     "December"
                 ][month];
         }
-        
+
         return [
             "January",
             "February",
@@ -269,48 +271,48 @@ class Calendar extends React.Component {
             "Mo", "Ti", "We", "Th", "Fr", "Sa", "Su"
         ][day];
     }
-    
+
     static CalendarDate = class {
         constructor(calendar, date) {
             this.calendar = calendar;
             this.date = date;
         }
-        
+
         getDate() {
             return this.date;
         }
-        
+
         isSelected() {
             return this.calendar.state.selectedDate.getTime() === this.date.getTime();
         }
-        
+
         isCurrentDay() {
             const current = new Date(Date.now());
             current.setHours(0);
             current.setMinutes(0);
             current.setSeconds(0);
             current.setMilliseconds(0);
-            
+
             return this.date.getTime() === current.getTime();
         }
-        
+
         setStatusColor(color) {
             this.statusColor = color;
-            
+
             this.calendar.forceUpdate()
         }
-        
+
         getStatusColor() {
             return this.statusColor;
         }
-        
+
         getStyle() {
             if (this.statusColor) {
                 return {
                     color: this.statusColor
                 };
             }
-            
+
             return undefined;
         }
     };
