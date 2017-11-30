@@ -25,9 +25,7 @@ class App extends React.Component {
     
     render() {
         return (
-            <Calendar year={ this.state.date.getFullYear() }
-                      month={ this.state.date.getMonth()+1 }
-                      onDaySelected={ (date) => console.log(date) }
+            <Calendar onDaySelected={ (date) => console.log(date) }
                       transformDate={ (calendarDate) => {
                           const date = calendarDate.getDate();
                           ws.send({

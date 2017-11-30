@@ -148,8 +148,8 @@ class Calendar extends React.Component {
             let calendarDate = this.state.calendarDates[date.getTime()];
             
             if (!calendarDate) {
+                calendarDate = new Calendar.CalendarDate(this, date);
                 if (this.props.transformDate) {
-                    calendarDate = new Calendar.CalendarDate(this, date);
                     this.props.transformDate(calendarDate);
                     this.state.calendarDates[date.getTime()] = calendarDate;
                 }
