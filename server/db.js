@@ -119,7 +119,7 @@ find({date:{$gt:(start),$lte:(end)}})
     }
 
     async function markDayAsFull(date, full = true) {
-        daysCollection.updateOne(
+        daysCollection.insertOne(
             {
                 date: date
             },
@@ -129,6 +129,12 @@ find({date:{$gt:(start),$lte:(end)}})
                 }
             }
         );
+    }
+
+    async function markDayAsNotFull(date) {
+        daysCollection.remove({
+            date: date
+        });
     }
 
     if ((await adminCollection.find({ name: config.defaultAdminUsername })).count() < 1) {
@@ -144,6 +150,7 @@ find({date:{$gt:(start),$lte:(end)}})
         getBookings: getBookings,
         dayAvailable: dayAvailable,
         markDayAsFull: markDayAsFull,
+        markDayAsNotFull: markDayAsNotFull,
         debug: {
             db: db,
             bookings: bookingsCollection,
