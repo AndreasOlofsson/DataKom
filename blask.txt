@@ -13,4 +13,4 @@ db.addBooking("Melker Forssell", "melkerforssell@gmail.com",new Date(2017, 12, 2
 
 
 
-db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,10,10))}}).toArray().then(it => console.log(it))
+db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))

@@ -84,7 +84,7 @@ module.exports = async function() {
     db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))
 find({date:{$gt:(start),$lte:(end)}})
 */
-    async function getBookingMonth(start, end) {
+    async function getBookings(start, end) {
         const bookings = bookingsCollection.find({ date: { $gt: start, $lte: end } });
         return await bookings.toArray();
     }
@@ -104,10 +104,6 @@ find({date:{$gt:(start),$lte:(end)}})
 
     async function removeBooking(id) {
         bookingsCollection.remove({ _id: ObjectID(id) });
-    }
-
-    async function getBookingsOnDate(date) {
-        return bookingsCollection.find({ date: date });
     }
 
     async function dayAvailable(date) {
@@ -145,10 +141,9 @@ find({date:{$gt:(start),$lte:(end)}})
         addBooking: addBooking,
         changeBookingStatus: changeBookingStatus,
         removeBooking: removeBooking,
-        getBookingsOnDate: getBookingsOnDate,
+        getBookings: getBookings,
         dayAvailable: dayAvailable,
         markDayAsFull: markDayAsFull,
-        getBookingMonth: getBookingMonth,
         debug: {
             db: db,
             bookings: bookingsCollection,
