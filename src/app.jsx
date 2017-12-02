@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { HelloWorld } from "./components/test.jsx";
+import { Layout } from "./components/layout.jsx";
 
 class App extends React.Component {
     render() {
         return (
-            <HelloWorld />
+            <Layout />
         );
     }
 }
