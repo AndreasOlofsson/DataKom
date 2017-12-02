@@ -115,7 +115,7 @@ find({date:{$gt:(start),$lte:(end)}})
             return true;
         }
 
-        return !(await result.next()).full;
+        return false;
     }
 
     async function markDayAsFull(date, full = true) {
