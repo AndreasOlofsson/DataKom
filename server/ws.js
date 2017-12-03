@@ -38,15 +38,6 @@ module.exports = (server, db) => {
             throw 'bad request ("date" missing)';
         }
     }
-    /*
-expectedArray = {
-    "name":"John",
-    "email":'melkerforssell@gmail.com',
-    "date": date,
-    "number": numPeople,
-    "text" : text,
-}
-*/
 
     function validateEmail(email) {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -56,22 +47,13 @@ expectedArray = {
     async function addBooking(ws, msg) {
         if (msg['booking']) {
             let booking = msg['booking'];
-            if (booking.name.length < 5) {
-                throw 'Bookings require fullname';
-            }
-            if (booking.name.length < 5) {
-                throw 'Bookings require fullname';
-            }
-            if (!validateEmail(booking.email)) {
-                throw 'Not valid emailadress';
-            }
 
             try {
                 booking = await db.addBooking(
                     booking.name,
                     booking.email,
                     booking.date,
-                    booking.number,
+                    booking.amountGuests,
                     booking.text
                 );
             } catch (e) {
