@@ -47,6 +47,13 @@ module.exports = (server, db) => {
     async function addBooking(ws, msg) {
         if (msg['booking']) {
             let booking = msg['booking'];
+            console.log(booking);
+            if (booking.name.length < 1) {
+                throw 'Name is required';
+            }
+            if (!validateEmail(booking.email)) {
+                throw 'not valid emailadress!';
+            }
 
             try {
                 booking = await db.addBooking(
@@ -59,6 +66,7 @@ module.exports = (server, db) => {
             } catch (e) {
                 throw 'Server Error (DB access failed)';
             }
+            return booking;
         } else {
             throw 'bad request ("booking" missing)';
         }
