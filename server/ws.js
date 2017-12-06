@@ -37,11 +37,51 @@ module.exports = (server, db) => {
         }
     }
 
+    function getBookingsDate(ws, msg){
+      if (msg["getBookingsDate"]) {
+      var date = msg["getBookingsDate"];
+      let bookings;
+      try{
+        bookings = await db.getBookings(new Date(date.year, date.month -1, date.day),new Date(date.year, date.month -1, date.day,23,00));
+      }catch (e) {
+          throw "Server Error (DB access failed)"
+      }
+      return {
+          "bookings": bookings
+      };
+  } else {
+      throw "bad request (\"bookings\" missing)";
+  }
+}
+
+    function removeBooking(id){
+      //ta bort bokning
+    }
+
+    function confirmBooking(id){
+      //ändra status till booking
+    }
+
+    function unConfirmBooking(id){
+      //ändra status till booking
+    }
+
+    function getDaysWithBooking(year,month){
+
+      //array true eller false
+    }
+  //  function editBooking()
+
+
+
+
+
 
     function validateEmail(email) {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(email);
     }
+
     function validDate(date) {
         if (typeof date !== 'string') {
             throw 'Bad Request ("date" is not a string)';
@@ -81,6 +121,8 @@ module.exports = (server, db) => {
 }
 }
 
+
+
     async function addBooking(ws, msg) {
         if (msg["booking"]) {
             return {
@@ -108,9 +150,7 @@ module.exports = (server, db) => {
         }
     }
 
-=======
 
->>>>>>> cb514ab69e64e656db42c21765c49f50b24d56e5
     wss.on('connection', (ws, req) => {
         ws.on('message', (msg) => {
             (async function() {
