@@ -43,6 +43,18 @@ module.exports = (server, db) => {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(email);
     }
+    function validDate(date) {
+        if (typeof date !== 'string') {
+            throw 'Bad Request ("date" is not a string)';
+        }
+
+        date = date.split('-');
+
+        if (date.length !== 3) {
+            throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
+        }
+        return true;
+    }
 
     async function addBooking(ws, msg) {
         if (msg['booking']) {
@@ -69,6 +81,21 @@ module.exports = (server, db) => {
             return booking;
         } else {
             throw 'bad request ("booking" missing)';
+        }
+    }
+
+    async function markDayAsFull(ws, msg) {
+        if (msg['markDayAsFull']) {
+            let date = msg['markDayAsFull'];
+            if (validDate(date)) {
+                try {
+                    response = await db.markDayAsFull(date);
+                } catch (e) {
+                    throw 'Server Error (DB access failed)';
+                }
+            }
+        } else {
+            throw 'Error markDayAsFull';
         }
     }
 
