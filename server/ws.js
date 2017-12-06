@@ -5,7 +5,7 @@ module.exports = (server, db) => {
 
     function sendJSON(ws, data) {
         ws.send(JSON.stringify(data));
-    }
+  }
 
     async function getAvailable(ws, msg) {
         if (msg["date"]) {
@@ -40,9 +40,11 @@ module.exports = (server, db) => {
     function getBookingsDate(ws, msg){
       if (msg["getBookingsDate"]) {
       var date = msg["getBookingsDate"];
+
+      date = date.split("-");
       let bookings;
       try{
-        bookings = await db.getBookings(new Date(date.year, date.month -1, date.day),new Date(date.year, date.month -1, date.day,23,00));
+        bookings = await db.getBookings(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2],23,00)));
       }catch (e) {
           throw "Server Error (DB access failed)"
       }
