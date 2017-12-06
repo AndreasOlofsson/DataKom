@@ -1,45 +1,48 @@
 import * as React from 'react';
+import {BookingButton} from './bookingbutton.jsx';
 
 class ListView extends React.Component {
-  uButtonList(clickConfirm) {
-    const uBookings = this.props.data1;
-    const cBookings = this.props.data2;
+  constructor(props) {
+    super(props);
 
-    const uList = uBookings.map((uBooking, i) =>
-    <button key={uBooking.name}
-            className="booking-button"
-            onClick={() => clickConfirm(i)}>
-      {uBooking.name + " " + uBooking.lastname}
-    </button>);
-
-    return uList;
+    this.state = {
+      clickConfirm: this.props.clickConfirm,
+      clickDelete: this.props.clickDelete
+    };
   }
 
-  cButtonList(clickDelete) {
-    const cBookings = this.props.data2;
-    const cList = cBookings.map((cBooking, i) =>
-      <button key={cBooking.name}
-              className="booking-button"
-              onClick={() => clickDelete(i)}>
-        {cBooking.name + " " + cBooking.lastname}
-      </button>);
+  buttonList(confirmed) {
+    if (this.props.data.length === 0) {
+      return;
+    }
+    const bookings = this.props.data.slice();
+    const func = confirmed
+      ? this.state.clickDelete
+      : this.state.clickConfirm;
 
-    //TODO: Add the real stuff to output
-    //TODO: Handle the onClicks
+    const bText = confirmed
+      ? "delete"
+      : "confirm";
 
-    return cList;
+    const list = bookings.map((booking, i) =>
+     <BookingButton title={this.props.data[i].name}
+                    text={"Efternamn: " + this.props.data[i].lastname}
+                    bText={bText}
+                    func={() => func(i)}
+                    key={this.props.data[i].name}/>);
+    return list;
   }
 
   render() {
     return (<div>
       <div id="unconfirmed-list" className="lists">
         <h2>Unconfirmed</h2>
-        {this.uButtonList((i) => this.props.clickConfirm(i))}
+        {/*this.buttonList(false)*/}
       </div>
 
       <div id="confirmed-list" className="lists">
         <h2>Confirmed</h2>
-        {this.cButtonList((i => this.props.clickDelete(i)))}
+        {/*this.buttonList(true)*/}
       </div>
     </div>);
   }

@@ -1,4 +1,8 @@
-#back-button {
+#body {
+  background-color: #303030;
+}
+
+back-button {
   height: 32px;
   width: 100px;
   border: 1px solid black;
@@ -10,16 +14,31 @@
   background-color: #FF7F7F;
 }
 
+
+
 .booking-button {
   height: 32px;
   width: 90%;
   margin-bottom: 2px;
+  padding: 2px;
 
   border: 1px solid black;
   border-radius: 2px;
 
   color: black;
-  background-color: #F0F0F0;
+  background-color: #E0E0E0;
+}
+.booking-button-expanded {
+  height: 122px;
+  width: 90%;
+  margin-bottom: 2px;
+  padding: 2px;
+
+  border: 1px solid black;
+  border-radius: 2px;
+
+  color: black;
+  background-color: #F2F2F2;
 }
 
 .booking-button:hover {

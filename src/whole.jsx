@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {CalendarView} from "./components/calendarview.jsx"
-import {ListView} from "./components/listview.jsx"
+import {CalendarView} from "./components/calendarview.jsx";
+import {ListView} from "./components/listview.jsx";
 import {WSInterface} from "./lib/wsInterface.js";
 
 const ws = new WSInterface(); //WebSocket Interface
@@ -15,28 +15,38 @@ class App extends React.Component {
     this.state = {
       viewMode: false, //True = Calendar, False = ListView
       date: new Date(Date.now()), //Todays Date
-      uBookings: [
+      /*
+            name: name,
+            email: email,
+            date: date,
+            number: numPeople,
+            text: text,
+            status: ""
+            //emails: [], Kanske
+      */
+      bookings: [
         {
-          name: "Valter",
-          lastname: "Gådin"
-          ppl: 5,
+          name: "Valter Gådin",
+          email: "valter94@live.se",
+          number: 5,
+          confirmed: false
         }, {
-          name: "Melker",
-          lastname: "Forsell"
-          ppl: 4,
-        }
-      ],
-      cBookings: [
-        {
-          name: "Andreas",
-          lastname: "Olofsson"
-          ppl: 3,
+          name: "Melker Forsell",
+          email: "melker_fotboll@hotmail.com",
+          number: 4,
+          confirmed: false
         }, {
-          name: "Gustav",
-          lastname: "Janer"
-          ppl: 10,
+          name: "Andreas Olofsson",
+          email: "SnyggAndreas@gmail.com",
+          number: 3,
+          confirmed: true
+        }, {
+          name: "Gustav Janer",
+          email: "Gustav@Janer.se",
+          number: 10,
+          confirmed: true
         }
-      ],
+      ]
     };
   }
 
@@ -48,53 +58,80 @@ class App extends React.Component {
     });
   }
 
+  /* Handles click in the calendarview
+   * Calls function to load bookings and update this.date and this.bookings
+    */
   handleClickCalendar(date) {
     //TODO: LÄGG till så att hämta bokningar för dagen
     //TODO: Uppdatera uBookings & cBookings för den dagen
-    //alert(date)
+
+    alert(date);
+    this.setState({date: date})
     this.changeMode();
   }
 
-  /*
-  * handleClick, removes a not yet handled booking to the confirmed cue
-  */
+  /*handleClick, removes a not yet handled booking to the confirmed cue
+    */
   handleClickConfirm(i) {
-    const uBookings = this.state.uBookings.slice();
-    const cBookings = this.state.cBookings.slice();
-    const toConfirm = uBookings.splice(i, 1)[0];
-    cBookings.push(toConfirm);
+    let bookings = this.state.bookings.slice();
+    const toConfirm = bookings.splice(i, 1)[0];
+    toConfirm.confirmed = true;
+    bookings.splice(i, 0, toConfirm[0]);
+
+//    console.log("index: " + i);
+//    console.log(toConfirm.name + ", status: " + toConfirm.confirmed);
 
     //TODO: LÄGG till så att databasen ändrar sig
-
-    this.setState({uBookings: uBookings, cBookings: cBookings});
+    this.setState({bookings: bookings});
   }
 
+  /* Function to delete a booking
+   */
   handleClickDelete(i) {
     if (confirm("Are you sure you want to remove this booking?")) {
-      const cBookings = this.state.cBookings.slice();
-      cBookings.splice(i, 1);
+      let bookings = this.state.bookings.slice();
+      let removed = bookings.splice(i, 1);
+      console.log(removed[0].name);
 
       //TODO: LÄGG till så att databasen ändrar sig
-
-      this.setState({cBookings: cBookings});
+      this.setState({bookings: bookings});
     }
-    else return;
   }
 
-  /*
-    * Renders the diffrent views depending in the viewMode
+  /* Imports the bookings from the database
+    */
+  importForDate() {
+    //TODO: fix so that all bokings are loaded for a specified date "this.state.date"
+    //into this.bookings
+  }
+
+  testLog() {
+    const bookings = this.state.bookings.slice();
+      console.log("Längd: " + bookings.length);
+    for(let i = 0; i < bookings.length; i++) {
+      this.handleClickConfirm(i);
+      console.log("Index [" + i + "]:" + bookings[i].confirmed);
+    }
+      console.log("--");
+  }
+
+  /* Renders the diffrent views depending in the viewMode
     */
   renderView() {
     if (this.state.viewMode) {
       return (<div>
-        <CalendarView date={this.state.date} onClick={this.handleClickCalendar.bind(this)}/>
-      </div>)
+        <CalendarView date={this.state.date}
+                      onClick={this.handleClickCalendar.bind(this)}/>
+      </div>);
     } else {
       return (<div className="list-container">
-        <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
+        <button id="back-button"
+                onClick={() => this.changeMode()}>Tillbaka</button>
         <h1>{this.state.date.toDateString()}</h1>
-        <ListView data1={this.state.uBookings} data2={this.state.cBookings} clickConfirm={this.handleClickConfirm.bind(this)} clickDelete={this.handleClickDelete.bind(this)}/>
-      </div>)
+        <ListView data={this.state.bookings}
+                  clickConfirm={this.handleClickConfirm.bind(this)}
+                  clickDelete={this.handleClickDelete.bind(this)}/>
+      </div>);
     }
   }
 
@@ -102,6 +139,7 @@ class App extends React.Component {
     return (<div className="app">
       <header className="app-header"></header>
       {this.renderView()}
+      <button onClick={() => this.testLog()}>debug</button>
     </div>);
   }
 }
