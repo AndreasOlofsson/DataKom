@@ -68,10 +68,11 @@ module.exports = async function() {
         );
     }
 
-    async function addBooking(name, email, date, numPeople, text) {
-        return await bookingsCollection.insertOne({
+    async function addBooking(name, email, time, date, numPeople, text) {
+        return await db.collection('bookings').insertOne({
             name: name,
             email: email,
+            time: time,
             date: date,
             number: numPeople,
             text: text,
@@ -113,6 +114,11 @@ module.exports = async function() {
 
     async function removeBooking(id) {
         bookingsCollection.remove({ _id: ObjectID(id) });
+        //om status på den dagen är full behöver detta ändras
+    }
+
+    async function getBookingsOnDate(date) {
+        return bookingsCollection.find({ date: date });
     }
 
     async function dayAvailable(date) {
@@ -124,11 +130,11 @@ module.exports = async function() {
             return true;
         }
 
-        return false;
+        return !(await result.next()).full;
     }
 
     async function markDayAsFull(date, full = true) {
-        daysCollection.insertOne(
+        daysCollection.updateOne(
             {
                 date: date
             },
@@ -138,12 +144,6 @@ module.exports = async function() {
                 }
             }
         );
-    }
-
-    async function markDayAsNotFull(date) {
-        daysCollection.remove({
-            date: date
-        });
     }
 
     if ((await adminCollection.find({ name: config.defaultAdminUsername })).count() < 1) {
@@ -156,7 +156,7 @@ module.exports = async function() {
         addBooking: addBooking,
         changeBookingStatus: changeBookingStatus,
         removeBooking: removeBooking,
-        getBookings: getBookings,
+        getBookingsOnDate: getBookingsOnDate,
         dayAvailable: dayAvailable,
         markDayAsFull: markDayAsFull,
         markDayAsNotFull: markDayAsNotFull,
@@ -169,4 +169,3 @@ module.exports = async function() {
         }
     };
 };
-
