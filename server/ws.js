@@ -38,32 +38,33 @@ module.exports = (server, db) => {
             throw 'bad request ("date" missing)';
         }
     }
-    /*
-expectedArray = {
-    "name":"John",
-    "email":'melkerforssell@gmail.com',
-    "date": date,
-    "number": numPeople,
-    "text" : text,
-}
-*/
 
     function validateEmail(email) {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(email);
     }
+    function validDate(date) {
+        if (typeof date !== 'string') {
+            throw 'Bad Request ("date" is not a string)';
+        }
+
+        date = date.split('-');
+
+        if (date.length !== 3) {
+            throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
+        }
+        return true;
+    }
 
     async function addBooking(ws, msg) {
         if (msg['booking']) {
             let booking = msg['booking'];
-            if (booking.name.length < 5) {
-                throw 'Bookings require fullname';
-            }
-            if (booking.name.length < 5) {
-                throw 'Bookings require fullname';
+            console.log(booking);
+            if (booking.name.length < 1) {
+                throw 'Name is required';
             }
             if (!validateEmail(booking.email)) {
-                throw 'Not valid emailadress';
+                throw 'not valid emailadress!';
             }
 
             try {
@@ -71,14 +72,30 @@ expectedArray = {
                     booking.name,
                     booking.email,
                     booking.date,
-                    booking.number,
+                    booking.amountGuests,
                     booking.text
                 );
             } catch (e) {
                 throw 'Server Error (DB access failed)';
             }
+            return booking;
         } else {
             throw 'bad request ("booking" missing)';
+        }
+    }
+
+    async function markDayAsFull(ws, msg) {
+        if (msg['markDayAsFull']) {
+            let date = msg['markDayAsFull'];
+            if (validDate(date)) {
+                try {
+                    response = await db.markDayAsFull(date);
+                } catch (e) {
+                    throw 'Server Error (DB access failed)';
+                }
+            }
+        } else {
+            throw 'Error markDayAsFull';
         }
     }
 
