@@ -25,6 +25,9 @@ class BookingButton extends React.Component {
         <button onClick={this.props.func}>
           {this.props.bText}
         </button>
+        <button onClick={this.props.funcDelete}>
+          Delete
+        </button>
       </div>);
     } else {
       return (<div className="booking-button" onClick={this.handleExpand}>

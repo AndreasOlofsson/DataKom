@@ -21,9 +21,10 @@ class App extends React.Component {
             date: date,
             number: numPeople,
             text: text,
-            status: ""
+            status: "" pending//confirmed
             //emails: [], Kanske
       */
+      /*
       bookings: [
         {
           name: "Valter Gådin",
@@ -47,6 +48,8 @@ class App extends React.Component {
           confirmed: true
         }
       ]
+      */
+      bookings: null
     };
   }
 
@@ -62,10 +65,20 @@ class App extends React.Component {
    * Calls function to load bookings and update this.date and this.bookings
     */
   handleClickCalendar(date) {
+    console.log(date);
+    console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
     //TODO: LÄGG till så att hämta bokningar för dagen
-    //TODO: Uppdatera uBookings & cBookings för den dagen
+    ws.send({
+      request: "getBookingsDate",
+      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    }, (msg) => {
+      if (msg["bookings"]) {
+        var bookings = (msg['bookings']);
+      }
+    })
 
-    alert(date);
+    console.log(bookings);
+
     this.setState({date: date})
     this.changeMode();
   }
@@ -78,8 +91,8 @@ class App extends React.Component {
     toConfirm.confirmed = true;
     bookings.splice(i, 0, toConfirm[0]);
 
-//    console.log("index: " + i);
-//    console.log(toConfirm.name + ", status: " + toConfirm.confirmed);
+    //    console.log("index: " + i);
+    //    console.log(toConfirm.name + ", status: " + toConfirm.confirmed);
 
     //TODO: LÄGG till så att databasen ändrar sig
     this.setState({bookings: bookings});
@@ -107,12 +120,12 @@ class App extends React.Component {
 
   testLog() {
     const bookings = this.state.bookings.slice();
-      console.log("Längd: " + bookings.length);
-    for(let i = 0; i < bookings.length; i++) {
+    console.log("Längd: " + bookings.length);
+    for (let i = 0; i < bookings.length; i++) {
       this.handleClickConfirm(i);
       console.log("Index [" + i + "]:" + bookings[i].confirmed);
     }
-      console.log("--");
+    console.log("--");
   }
 
   /* Renders the diffrent views depending in the viewMode
@@ -120,17 +133,13 @@ class App extends React.Component {
   renderView() {
     if (this.state.viewMode) {
       return (<div>
-        <CalendarView date={this.state.date}
-                      onClick={this.handleClickCalendar.bind(this)}/>
+        <CalendarView date={this.state.date} onClick={this.handleClickCalendar.bind(this)}/>
       </div>);
     } else {
       return (<div className="list-container">
-        <button id="back-button"
-                onClick={() => this.changeMode()}>Tillbaka</button>
+        <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
         <h1>{this.state.date.toDateString()}</h1>
-        <ListView data={this.state.bookings}
-                  clickConfirm={this.handleClickConfirm.bind(this)}
-                  clickDelete={this.handleClickDelete.bind(this)}/>
+        <ListView data={this.state.bookings} clickConfirm={this.handleClickConfirm.bind(this)} clickDelete={this.handleClickDelete.bind(this)}/>
       </div>);
     }
   }
