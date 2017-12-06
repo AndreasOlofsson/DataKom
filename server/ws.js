@@ -8,41 +8,80 @@ module.exports = (server, db) => {
     }
 
     async function getAvailable(ws, msg) {
-        if (msg['date']) {
-            let date = msg['date'];
+        if (msg["date"]) {
+            let date = msg["date"];
 
-            if (typeof date !== 'string') {
-                throw 'Bad Request ("date" is not a string)';
+            if (typeof date !== "string") {
+                throw "Bad Request (\"date\" is not a string)";
             }
 
-            date = date.split('-');
+            date = date.split("-");
 
             if (date.length !== 3) {
-                throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
+                throw "Bad Request (\"date\" must be in the format \"YYYY-MM-DD\")";
             }
 
             let available;
 
             try {
-                available = await db.dayAvailable(
-                    new Date(Date.UTC(date[0], date[1] - 1, date[2]))
-                );
+                available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
             } catch (e) {
-                throw 'Server Error (DB access failed)';
+                throw "Server Error (DB access failed)"
             }
 
             return {
-                available: available
+                "available": available
             };
         } else {
-            throw 'bad request ("date" missing)';
+            throw "bad request (\"date\" missing)";
         }
     }
+
+    function getBookingsDate(ws, msg){
+      if (msg["getBookingsDate"]) {
+      var date = msg["getBookingsDate"];
+      let bookings;
+      try{
+        bookings = await db.getBookings(new Date(date.year, date.month -1, date.day),new Date(date.year, date.month -1, date.day,23,00));
+      }catch (e) {
+          throw "Server Error (DB access failed)"
+      }
+      return {
+          "bookings": bookings
+      };
+  } else {
+      throw "bad request (\"bookings\" missing)";
+  }
+}
+
+    function removeBooking(id){
+      //ta bort bokning
+    }
+
+    function confirmBooking(id){
+      //ändra status till booking
+    }
+
+    function unConfirmBooking(id){
+      //ändra status till booking
+    }
+
+    function getDaysWithBooking(year,month){
+
+      //array true eller false
+    }
+  //  function editBooking()
+
+
+
+
+
 
     function validateEmail(email) {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(email);
     }
+
     function validDate(date) {
         if (typeof date !== 'string') {
             throw 'Bad Request ("date" is not a string)';
@@ -79,10 +118,22 @@ module.exports = (server, db) => {
                 throw 'Server Error (DB access failed)';
             }
             return booking;
+}
+}
+
+
+
+    async function addBooking(ws, msg) {
+        if (msg["booking"]) {
+            return {
+                "msg": "test"
+            };
+
         } else {
-            throw 'bad request ("booking" missing)';
+            throw "bad request (\"booking\" missing)";
         }
     }
+
 
     async function markDayAsFull(ws, msg) {
         if (msg['markDayAsFull']) {
@@ -99,8 +150,11 @@ module.exports = (server, db) => {
         }
     }
 
+=======
+
+>>>>>>> cb514ab69e64e656db42c21765c49f50b24d56e5
     wss.on('connection', (ws, req) => {
-        ws.on('message', msg => {
+        ws.on('message', (msg) => {
             (async function() {
                 let err;
 
@@ -110,34 +164,34 @@ module.exports = (server, db) => {
                     const func = {
                         getAvailable: getAvailable,
                         addBooking: addBooking
-                    }[msg['request']];
+                    }[msg["request"]];
 
                     if (func) {
                         try {
                             let result = await func(ws, msg);
 
-                            result['result'] = 'ok';
-                            result['id'] = msg['id'];
+                            result["result"] = "ok";
+                            result["id"] = msg["id"];
 
                             sendJSON(ws, result);
                         } catch (e) {
                             err = e;
                         }
                     } else {
-                        err = 'Bad Request (function not found)';
+                        err = "Bad Request (function not found)";
                     }
                 } catch (_) {
-                    err = 'Invalid JSON';
+                    err = "Invalid JSON";
                 }
 
                 if (err) {
                     try {
                         sendJSON(ws, {
                             result: err,
-                            id: msg['id']
+                            id: msg["id"]
                         });
                     } catch (e) {
-                        console.error('Failed to send error message: ');
+                        console.error("Failed to send error message: ");
                         console.error(err);
                     }
                 }
