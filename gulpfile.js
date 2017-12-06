@@ -49,7 +49,7 @@ gulp.task(
 );
 
 gulp.task(
-    "devbuild",
+    "build-dev",
     () => {
         gulp.src(["src/*.js", "src/*.jsx"])
             .pipe(named())
@@ -57,5 +57,11 @@ gulp.task(
             .pipe(gulp.dest("build/"))
     }
 );
+
+gulp.task(
+    "devbuild",
+    () => {
+        console.log('Compilation is no longer necessary for development\nrun: npm run start-dev');
+    });
 
 gulp.task("default", ["build"]);
