@@ -3,44 +3,39 @@ const config = require("./config.js");
 const mongodb = require("mongodb").MongoClient;
 const crypto = require("crypto");
 
-const ObjectID = require("mongodb").ObjectID;
-
 module.exports = async function() {
     const db = await mongodb.connect(config.dbURL);
 
     let bookingsCollection = await db.createCollection("bookings");
 
     let adminCollection = await db.createCollection("admins");
-
+    
     let daysCollection = await db.createCollection("days");
-
+    
     // end --- Create/get collections
-
+    
     // start --- Create indexes
-
+    
     if (!await daysCollection.indexExists("date_ttl")) {
-        await daysCollection.createIndex(
-            {
-                date: 1
-            },
-            {
-                name: "date_ttl",
-                unique: true,
-                expireAfterSeconds: 60 * 60 * 24 * 14
-            }
-        );
+        await daysCollection.createIndex({
+            "date": 1
+        }, {
+            name: "date_ttl",
+            unique: true,
+            expireAfterSeconds: 60 * 60 * 24 * 14
+        });
     }
-
+    
     // end --- Create indexes
-
+    
     // start --- DB Functions
-
+    
     async function addAdmin(name, password) {
         return await adminCollection
             .insertOne({
                 name: name,
                 password: null,
-                salt: null
+                salt: null,
             })
             .then(() => {
                 return changeAdminPassword(name, password);
@@ -57,53 +52,48 @@ module.exports = async function() {
 
         return await adminCollection.updateOne(
             {
-                name: name
+                name: name,
             },
             {
                 $set: {
                     password: passwordDigest,
-                    salt: salt
-                }
+                    salt: salt,
+                },
             }
         );
     }
 
-    async function addBooking(name, email, date, numPeople, text) {
-        return await bookingsCollection.insertOne({
+    async function addBooking(name, email, time, date, numPeople, text) {
+        return await db.collection("bookings").insertOne({
             name: name,
             email: email,
+            time: time,
             date: date,
             number: numPeople,
             text: text,
-            submitted: new Date(Date.now()),
+            submitted: new Date().getTime(),
             status: "pending",
-            emails: []
+            emails: [],
         });
-    }
-    /*db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))
-    db.debug.db.collection('bookings').find({date:{$gt:(new Date(2017,11,10))}}).toArray().then(it => console.log(it))
-find({date:{$gt:(start),$lte:(end)}})
-*/
-    async function getBookings(start, end) {
-        const bookings = bookingsCollection.find({ date: { $gt: start, $lte: end } });
-        return await bookings.toArray();
     }
 
     async function changeBookingStatus(id, status) {
-        bookingsCollection.updateOne(
-            {
-                _id: ObjectID(id)
-            },
-            {
-                $set: {
-                    status: status
-                }
+        bookingsCollection.updateOne({
+            _id: ObjectID(id)
+        }, {
+            $set: {
+                status: status
             }
-        );
+        });
     }
-
+    
     async function removeBooking(id) {
         bookingsCollection.remove({ _id: ObjectID(id) });
+        //om status på den dagen är full behöver detta ändras
+    }
+
+    async function getBookingsOnDate(date) {
+        return bookingsCollection.find({ date: date });
     }
 
     async function dayAvailable(date) {
@@ -111,29 +101,20 @@ find({date:{$gt:(start),$lte:(end)}})
             date: date
         });
 
-        if ((await result.count()) < 1) {
+        if (await result.count() < 1) {
             return true;
         }
 
-        return false;
+        return !(await result.next()).full;
     }
 
     async function markDayAsFull(date, full = true) {
-        daysCollection.insertOne(
-            {
-                date: date
-            },
-            {
-                $set: {
-                    full: full
-                }
-            }
-        );
-    }
-
-    async function markDayAsNotFull(date) {
-        daysCollection.remove({
+        daysCollection.updateOne({
             date: date
+        }, {
+            $set: {
+                full: full
+            }
         });
     }
 
@@ -147,10 +128,9 @@ find({date:{$gt:(start),$lte:(end)}})
         addBooking: addBooking,
         changeBookingStatus: changeBookingStatus,
         removeBooking: removeBooking,
-        getBookings: getBookings,
+        getBookingsOnDate: getBookingsOnDate,
         dayAvailable: dayAvailable,
         markDayAsFull: markDayAsFull,
-        markDayAsNotFull: markDayAsNotFull,
         debug: {
             db: db,
             bookings: bookingsCollection,
