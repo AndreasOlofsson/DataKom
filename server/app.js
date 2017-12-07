@@ -113,14 +113,15 @@ var require = function(path) {
     }
 };
 require.__dirname = ${ JSON.stringify(pathDir) };
-(function(exports, module, require, self, __filename, __dirname) {
+module.require = require;
+(function(exports, module, mod, require, self, __filename, __dirname) {
 ${ transformedCode }
-})(module.exports, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
+})(module.exports, module, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
 return module;
 })();`;
         
         return wrappedCode;
-    }, '../jit-cache/');
+    }, '../jit-cache/', '../');
     
     jit.include('../src/');
 
