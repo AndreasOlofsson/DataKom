@@ -42,7 +42,6 @@ class UserForms extends React.Component {
             email: ''
         };
     }
-
     changeAmount(newAmount) {
         this.setState({ amountGuests: newAmount });
     }
