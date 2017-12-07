@@ -5,7 +5,7 @@ module.exports = (server, db) => {
 
     function sendJSON(ws, data) {
         ws.send(JSON.stringify(data));
-    }
+  }
 
     async function getAvailable(ws, msg) {
         if (msg["date"]) {
@@ -40,9 +40,11 @@ module.exports = (server, db) => {
     function getBookingsDate(ws, msg){
       if (msg["getBookingsDate"]) {
       var date = msg["getBookingsDate"];
+
+      date = date.split("-");
       let bookings;
       try{
-        bookings = await db.getBookings(new Date(date.year, date.month -1, date.day),new Date(date.year, date.month -1, date.day,23,00));
+        bookings = await db.getBookings(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2],23,00)));
       }catch (e) {
           throw "Server Error (DB access failed)"
       }
@@ -54,16 +56,43 @@ module.exports = (server, db) => {
   }
 }
 
-    function removeBooking(id){
-      //ta bort bokning
+    function removeBooking(ws, msg){
+      if (msg["removeBooking"]) {
+      var   id = msg["removeBooking"];
+      try {await db.removeBooking(id)
+      }catch (e) {
+          throw "Server Error (DB access failed)"
+      }
+      return true;
+    }else {
+        throw "bad request ";
+        }
     }
 
-    function confirmBooking(id){
-      //ändra status till booking
+    function confirmBooking(ws,msg){
+          if (msg["confirmBooking"]) {
+            var   id = msg["confirmBooking"];
+            try {await db.changeBookingStatus(id,'Confirmed')
+            }catch (e) {
+                throw "Error on confirm booking"
+            }return true;
+          }
+          else {
+              throw "bad request ";
+              }
     }
 
-    function unConfirmBooking(id){
-      //ändra status till booking
+    function unConfirmBooking(ws,msg){
+      if (msg["unConfirmBooking"]) {
+        var   id = msg["unConfirmBooking"];
+        try {await db.changeBookingStatus(id,'Pending')
+        }catch (e) {
+            throw "Error on unConfirmBooking"
+        }return true;
+      }
+      else {
+          throw "bad request ";
+          }
     }
 
     function getDaysWithBooking(year,month){
@@ -110,7 +139,7 @@ module.exports = (server, db) => {
                 booking = await db.addBooking(
                     booking.name,
                     booking.email,
-                    booking.date,
+                    booking.date, // blir -1 på servern
                     booking.amountGuests,
                     booking.text
                 );
@@ -118,22 +147,8 @@ module.exports = (server, db) => {
                 throw 'Server Error (DB access failed)';
             }
             return booking;
+          }
 }
-}
-
-
-
-    async function addBooking(ws, msg) {
-        if (msg["booking"]) {
-            return {
-                "msg": "test"
-            };
-
-        } else {
-            throw "bad request (\"booking\" missing)";
-        }
-    }
-
 
     async function markDayAsFull(ws, msg) {
         if (msg['markDayAsFull']) {
@@ -150,9 +165,7 @@ module.exports = (server, db) => {
         }
     }
 
-=======
 
->>>>>>> cb514ab69e64e656db42c21765c49f50b24d56e5
     wss.on('connection', (ws, req) => {
         ws.on('message', (msg) => {
             (async function() {
