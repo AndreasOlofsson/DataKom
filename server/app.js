@@ -89,12 +89,16 @@ var module = new class Module {
     }
 };
 var require = function(path) {
-    const pathMatch = path.match(/^(\\.)?\\/(.*)/);
+    const pathMatch = path.match(/^(\\.\\.?)?\\/(.*)/);
     
     if (pathMatch) {
         path = \`\${
             pathMatch[1] ?
-            \`/require/\${ require.__dirname.replace(/:/g, '_') }/\`
+            \`/require/\${
+                require.__dirname.replace(/:/g, '_')
+            }/\${
+                pathMatch[1] === '..' ? '../' : ''
+            }\`
             : ''
         }\${ pathMatch[2] }\`;
     } else {

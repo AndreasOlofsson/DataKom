@@ -167,6 +167,10 @@ class JITCompiler {
     }
     
     _resolvePath(path) {
+        if (this.resolveCache && this.resolveCache[path]) {
+            return this.resolveCache[path];
+        }
+        
         let resolved = null;
         
         this.includes.concat(this._getModulePaths()).find((includePath) => {
@@ -214,6 +218,10 @@ class JITCompiler {
 
             return false;
         });
+        
+        if (!this.resolveCache) this.resolveCache = [];
+        
+        this.resolveCache[path] = resolved;
         
         return resolved;
     }
