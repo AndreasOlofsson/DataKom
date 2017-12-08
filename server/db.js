@@ -1,30 +1,30 @@
-const config = require('./config.js');
+const config = require("./config.js");
 
-const mongodb = require('mongodb').MongoClient;
-const crypto = require('crypto');
+const mongodb = require("mongodb").MongoClient;
+const crypto = require("crypto");
 
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require("mongodb").ObjectID;
 
 module.exports = async function() {
     const db = await mongodb.connect(config.dbURL);
 
-    let bookingsCollection = await db.createCollection('bookings');
+    let bookingsCollection = await db.createCollection("bookings");
 
-    let adminCollection = await db.createCollection('admins');
+    let adminCollection = await db.createCollection("admins");
 
-    let daysCollection = await db.createCollection('days');
+    let daysCollection = await db.createCollection("days");
 
     // end --- Create/get collections
 
     // start --- Create indexes
 
-    if (!await daysCollection.indexExists('date_ttl')) {
+    if (!await daysCollection.indexExists("date_ttl")) {
         await daysCollection.createIndex(
             {
                 date: 1
             },
             {
-                name: 'date_ttl',
+                name: "date_ttl",
                 unique: true,
                 expireAfterSeconds: 60 * 60 * 24 * 14
             }
@@ -51,9 +51,9 @@ module.exports = async function() {
         const salt = crypto.randomBytes(32); // 128-bits
 
         const passwordDigest = crypto
-            .createHmac('sha256', salt)
+            .createHmac("sha256", salt)
             .update(newPassword)
-            .digest('hex');
+            .digest("hex");
 
         return await adminCollection.updateOne(
             {
@@ -76,13 +76,13 @@ module.exports = async function() {
             number: numPeople,
             text: text,
             submitted: new Date(Date.now()),
-            status: 'pending',
+            status: "pending",
             emails: []
         });
     }
 
     async function getBookings(start, end) {
-        const bookings = bookingsCollection.find({ date: { $gt: start, $lte: end } });
+        const bookings = bookingsCollection.find({date: {$gt: start, $lt: end}});
         return await bookings.toArray();
     }
 
@@ -112,7 +112,7 @@ module.exports = async function() {
     }
 
     async function removeBooking(id) {
-        bookingsCollection.remove({ _id: ObjectID(id) });
+        bookingsCollection.remove({_id: ObjectID(id)});
     }
 
     async function dayAvailable(date) {
@@ -146,7 +146,7 @@ module.exports = async function() {
         });
     }
 
-    if ((await adminCollection.find({ name: config.defaultAdminUsername })).count() < 1) {
+    if ((await adminCollection.find({name: config.defaultAdminUsername})).count() < 1) {
         addAdmin(config.defaultAdminUsername, config.defaultAdminPassword);
     }
 
