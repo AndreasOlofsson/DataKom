@@ -45,13 +45,6 @@ class UserForms extends React.Component {
     changeAmount(newAmount) {
         this.setState({ amountGuests: newAmount });
     }
-    changeDate(newDate) {
-        var str = this.state.time.split('.');
-        newDate.setHours(parseFloat(str[0]));
-        newDate.setMinutes(parseFloat(str[1]));
-        newDate.toUTCString();
-        this.setState({ date: newDate });
-    }
     changeTime(newTime) {
         this.setState({ time: newTime });
         var str = newTime.split('.');
@@ -67,6 +60,32 @@ class UserForms extends React.Component {
     changeEmail(newEmail) {
         this.setState({ email: newEmail });
     }
+
+    changeDate(newDate) {
+        var str = this.state.time.split('.');
+        newDate.setHours(parseFloat(str[0]));
+        newDate.setMinutes(parseFloat(str[1]));
+        newDate.toUTCString();
+        this.setState({ date: newDate });
+    }
+    isDateAvailable(newDate) {
+        const date = new Date(newDate.getDate());
+        ws.send({
+            request: "getAvailable",
+            date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
+        },
+        (msg) => {
+            console.log(msg);
+            if (msg["available"] === false) {
+            window.alert("date not available..");
+            }
+            else if (msg["available"] === true) {
+            console.log("msg === true");
+            this.changeDate(newDate); // date is available, change it!
+            }
+        });
+    }
+
     sendBooking() {
         ws.send({
             request: "addBooking",
@@ -93,7 +112,7 @@ class UserForms extends React.Component {
                 <SubmitForm changeAmount={this.changeAmount.bind(this)} />
                 <p> Currently showing available dates for {this.state.amountGuests} guests </p>
                 <Calendar
-                      onDaySelected={ (date) => this.changeDate(date) }
+                      onDaySelected={ (date) => this.isDateAvailable(date) }
                       transformDate={ (calendarDate) => {
                           const date = calendarDate.getDate();
                           ws.send({
