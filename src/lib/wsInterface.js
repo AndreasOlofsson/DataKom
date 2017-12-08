@@ -24,17 +24,17 @@ class WSInterface {
                 return;
             }
 
-            const callback = this.callbacks[msg["_id"]];
+            const callback = this.callbacks[msg["_id"] - 1];
 
             if (callback) {
                 callback(msg);
-                delete this.callbacks[msg["_id"]];
+                delete this.callbacks[msg["_id"] - 1];
             }
         };
     }
 
     send(data, callback) {
-        data["_id"] = this.callbacks.push(callback) - 1;
+        data["_id"] = this.callbacks.push(callback);
 
         if (this.ws.readyState !== 1) {
             if (this.queue) {
