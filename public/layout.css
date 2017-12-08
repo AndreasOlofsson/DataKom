@@ -1,0 +1,18 @@
+.Layout {
+  text-align: center;
+}
+
+.Layout-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.Layout-title {
+  font-size: 1.5em;
+}
+
+.Layout-intro {
+  font-size: large;
+}
