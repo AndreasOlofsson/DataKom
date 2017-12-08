@@ -134,8 +134,6 @@ return module;
 
         const path = decodeURI(req.path);
 
-        console.log(`http request for ${ path }`);
-
         const match = path.match(regex);
 
         if (match) {
@@ -145,6 +143,9 @@ return module;
                 path = `./${ path }`;
             } else if (match[1] === 'require') {
                 path = `/${ path }`;
+                if (path.match(/\/[A-Z]:(.*)/)) {
+                    path = path.substr(1);
+                }
             }
 
             jit.require(path)

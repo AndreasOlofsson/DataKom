@@ -46,8 +46,6 @@ class JITCompiler {
     }
 
     require(path) {
-        console.log(`request for ${ path }`);
-
         return new Promise((resolve, reject) => {
             const resolved = this._resolvePath(path);
 
