@@ -18,7 +18,7 @@ module.exports = (server, db) => {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
 
-        return date;
+        return date.map((num) => { return parseInt(num) });
     }
 
     async function getAvailable(ws, msg) {

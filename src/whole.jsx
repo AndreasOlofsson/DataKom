@@ -68,16 +68,19 @@ class App extends React.Component {
     console.log(date);
     console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
     //TODO: LÄGG till så att hämta bokningar för dagen
+
     ws.send({
       request: "getBookingsDate",
-      date: `$date`
+      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
     }, (msg) => {
+        console.log(`callback ${ msg }`);
       if (msg["bookings"]) {
-        var bookings = (msg['bookings']);
-      }
-    })
 
-    console.log(bookings);
+        var bookings = msg["bookings"];
+
+        this.setState({bookings: bookings});
+      }
+    });
 
     this.setState({date: date})
     this.changeMode();

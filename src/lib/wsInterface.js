@@ -34,7 +34,7 @@ class WSInterface {
     }
 
     send(data, callback) {
-        data["_id"] = this.callbacks.push(callback);
+        data["_id"] = this.callbacks.push(callback) - 1;
 
         if (this.ws.readyState !== 1) {
             if (this.queue) {
