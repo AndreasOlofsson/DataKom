@@ -157,7 +157,6 @@ module.exports = (server, db) => {
 
                     const func = {
                         markDayAsFull: markDayAsFull,
-                        markDayAsNotFull: markDayAsNotFull,
                         getDaysWithBooking: getDaysWithBooking,
                         confirmBooking: confirmBooking,
                         unConfirmBooking: unConfirmBooking,
