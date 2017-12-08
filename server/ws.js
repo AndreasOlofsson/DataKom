@@ -73,9 +73,6 @@ module.exports = (server, db) => {
                 throw "Error on confirm booking";
             }
             return true;
-         else {
-            throw "bad request ";
-        }
       }
 
 
