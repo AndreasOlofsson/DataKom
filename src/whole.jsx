@@ -70,7 +70,7 @@ class App extends React.Component {
     //TODO: LÄGG till så att hämta bokningar för dagen
     ws.send({
       request: "getBookingsDate",
-      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      date: `$date`
     }, (msg) => {
       if (msg["bookings"]) {
         var bookings = (msg['bookings']);
