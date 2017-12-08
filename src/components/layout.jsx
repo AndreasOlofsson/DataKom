@@ -93,6 +93,7 @@ class UserForms extends React.Component {
                 email: this.state.email
             }
         }, (msg) => {
+            console.log(msg);
             "booking sent"
         }, (err) => {
             "booking unsuccessful"

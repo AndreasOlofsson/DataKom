@@ -46,7 +46,7 @@ module.exports = (server, db) => {
             throw 'Bad Request ("date" is missing)';
         }
 
-        let date = parseDate(msg["date"]);
+        let date = parseDate(msg["date"]);§
 
         let bookings;
 
@@ -145,7 +145,9 @@ module.exports = (server, db) => {
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
-        return booking;
+        return {
+            booking: booking
+        };
     }
 
     async function markDayAsFull(ws, msg) {
