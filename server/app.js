@@ -1,38 +1,38 @@
-'use strict';
+"use strict";
 
 // Includes
 
-const config      = require("./config.js");
+const config = require("./config.js");
 
-const express     = require("express");
-const http        = require("http");
-const mime        = require("mime-types");
-const pathUtil    = require("path");
+const express = require("express");
+const http = require("http");
+const mime = require("mime-types");
+const pathUtil = require("path");
 
 const dbInterface = require("./db.js");
 
-const JITCompiler = require('./JITCompiler.js');
+const JITCompiler = require("./JITCompiler.js");
 
 // Program variables
 
 let debug = false;
-let dev   = false;
-let port  = 80;
+let dev = false;
+let port = 1080;
 
 // Parsing arguments
 
 const argv = (() => {
     let scriptArgs = false;
-    return process.argv.filter((val) => {
+    return process.argv.filter(val => {
         if (val === "--") {
             scriptArgs = true;
             return false;
         }
-        return scriptArgs
+        return scriptArgs;
     });
 })();
 
-argv.forEach((val) => {
+argv.forEach(val => {
     if (val === "--debug") {
         debug = true;
         console.log("--- in debug mode ---");
@@ -53,29 +53,27 @@ const app = express();
 
 let db;
 
-app.set("port", (process.env.PORT || port));
+app.set("port", process.env.PORT || port);
 
 app.use("/", express.static("public/index.html"));
 app.use(express.static("public"));
-app.use(express.static("build"),
-    (req, res, next) => {
-        res.setHeader("Content-Type", mime.lookup(req.url));
-        next()
-    }
-);
+app.use(express.static("build"), (req, res, next) => {
+    res.setHeader("Content-Type", mime.lookup(req.url));
+    next();
+});
 
 if (dev) {
-    const babel = require('babel-core');
+    const babel = require("babel-core");
 
-    const jit = new JITCompiler((code, path, err, callback) => {
-        const transformedCode = babel.transform(require + code, {
-            presets: path.endsWith('.jsx') ? ['env', 'stage-2', 'react'] : ['env', 'stage-2']
-        }).code;
+    const jit = new JITCompiler(
+        (code, path, err, callback) => {
+            const transformedCode = babel.transform(require + code, {
+                presets: path.endsWith(".jsx") ? ["env", "stage-2", "react"] : ["env", "stage-2"]
+            }).code;
 
-        const pathDir = pathUtil.dirname(path);
+            const pathDir = pathUtil.dirname(path);
 
-        const wrappedCode =
-`(function() {
+            const wrappedCode = `(function() {
 var process = {
     env: {
         NODE_ENV: 'development'
@@ -83,7 +81,7 @@ var process = {
 };
 var module = new class Module {
     constructor() {
-        this.id = ${ JSON.stringify(path) };
+        this.id = ${JSON.stringify(path)};
         this.exports = {};
         this.parent = null;
     }
@@ -116,18 +114,23 @@ var require = function(path) {
         throw xhr.statusText;
     }
 };
-require.__dirname = ${ JSON.stringify(pathDir) };
+require.__dirname = ${JSON.stringify(pathDir)};
 module.require = require;
 (function(exports, module, mod, require, self, __filename, __dirname) {
-${ transformedCode }
-})(module.exports, module, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
+${transformedCode}
+})(module.exports, module, module, require, { require: require }, ${JSON.stringify(
+                path
+            )}, ${JSON.stringify(pathDir)});
 return module;
 })();`;
 
-        return wrappedCode;
-    }, '../jit-cache/', '../');
+            return wrappedCode;
+        },
+        "../jit-cache/",
+        "../"
+    );
 
-    jit.include('../src/');
+    jit.include("../src/");
 
     app.use((req, res, next) => {
         const regex = /^\/*(require-rel|require|node_modules)\/+(.*)/;
@@ -139,48 +142,51 @@ return module;
         if (match) {
             let path = match[2];
 
-            if (match[1] === 'require-rel') {
-                path = `./${ path }`;
-            } else if (match[1] === 'require') {
-                path = `/${ path }`;
+            if (match[1] === "require-rel") {
+                path = `./${path}`;
+            } else if (match[1] === "require") {
+                path = `/${path}`;
                 if (path.match(/\/[A-Z]:(.*)/)) {
                     path = path.substr(1);
                 }
             }
 
-            jit.require(path)
-                .then((result) => {
-                    res.setHeader('Content-type', 'application/javascript');
+            jit
+                .require(path)
+                .then(result => {
+                    res.setHeader("Content-type", "application/javascript");
                     res.end(result);
                 })
-                .catch((err) => {
+                .catch(err => {
                     console.error(err);
                     next();
                 });
-        } else if (path.endsWith('.js')) {
-            jit.require(`./${ path }`)
-                .then((result) => {
-                    res.setHeader('Content-type', 'application/javascript');
+        } else if (path.endsWith(".js")) {
+            jit
+                .require(`./${path}`)
+                .then(result => {
+                    res.setHeader("Content-type", "application/javascript");
                     res.end(result);
                 })
                 .catch(() => {
-                    jit.require(`./${ path }x`)
-                        .then((result) => {
-                            res.setHeader('Content-type', 'application/javascript');
+                    jit
+                        .require(`./${path}x`)
+                        .then(result => {
+                            res.setHeader("Content-type", "application/javascript");
                             res.end(result);
                         })
                         .catch(() => {
                             next();
-                        })
-                })
+                        });
+                });
         } else {
             next();
         }
     });
 }
 
-process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+process.on("unhandledRejection", (reason, p) => {
+    console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
 });
 
 (async function() {
@@ -195,7 +201,7 @@ process.on('unhandledRejection', (reason, p) => {
 
     const server = http.createServer(app);
 
-    require('./ws.js')(server, db);
+    require("./ws.js")(server, db);
 
     server.listen(app.get("port"), () => console.log(`Listening on port ${app.get("port")}`));
 })();
