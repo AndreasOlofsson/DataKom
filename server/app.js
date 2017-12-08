@@ -95,7 +95,7 @@ var require = function(path) {
         path = \`\${
             pathMatch[1] ?
             \`/require/\${
-                require.__dirname.replace(/:/g, '_')
+                require.__dirname
             }/\${
                 pathMatch[1] === '..' ? '../' : ''
             }\`
@@ -132,15 +132,15 @@ return module;
     app.use((req, res, next) => {
         const regex = /^\/*(require-rel|require|node_modules)\/+(.*)/;
         
-        const match = req.path.match(regex);
+        const path = decodeURI(req.path);
+        
+        const match = path.match(regex);
 
         if (match) {
             let path = match[2];
 
             if (match[1] === 'require-rel') {
                 path = `./${ path }`;
-            } else if (match[1] === 'require') {
-                path = path.match(/^\/?[A-Z]_\//) ? path.replace('_', ':') : path;
             }
 
             jit.require(path)
@@ -152,14 +152,14 @@ return module;
                     console.error(err);
                     next();
                 });
-        } else if (req.path.endsWith('.js')) {
-            jit.require(`./${ req.path }`)
+        } else if (path.endsWith('.js')) {
+            jit.require(`./${ path }`)
                 .then((result) => {
                     res.setHeader('Content-type', 'application/javascript');
                     res.end(result);
                 })
                 .catch(() => {
-                    jit.require(`./${ req.path }x`)
+                    jit.require(`./${ path }x`)
                         .then((result) => {
                             res.setHeader('Content-type', 'application/javascript');
                             res.end(result);
