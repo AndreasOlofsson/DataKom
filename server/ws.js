@@ -188,7 +188,7 @@ module.exports = (server, db) => {
                     try {
                         sendJSON(ws, {
                             result: err,
-                            id: msg["_id"]
+                            _id: msg["_id"]
                         });
                     } catch (e) {
                         console.error("Failed to send error message: ");
