@@ -48,7 +48,7 @@ module.exports = (server, db) => {
             try {
                 bookings = await db.getBookings(
                     new Date(Date.UTC(date[0], date[1] - 1, date[2])),
-                    new Date(Date.UTC(date[0], date[1] - 1, date[2], 23, 00))
+                    new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
                 );
             } catch (e) {
                 throw "Server Error (DB access failed)";
@@ -153,8 +153,8 @@ module.exports = (server, db) => {
     }
 
     async function markDayAsFull(ws, msg) {
-        if (msg["markDayAsFull"]) {
-            let date = msg["markDayAsFull"];
+        if (msg["id"]) {
+            let date = msg["id"];
             if (validDate(date)) {
                 try {
                     response = await db.markDayAsFull(date);
@@ -185,7 +185,7 @@ module.exports = (server, db) => {
                             let result = await func(ws, msg);
 
                             result["result"] = "ok";
-                            result["id"] = msg["id"];
+                            result["_id"] = msg["_id"];
 
                             sendJSON(ws, result);
                         } catch (e) {
