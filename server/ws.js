@@ -171,7 +171,7 @@ module.exports = (server, db) => {
                             let result = await func(ws, msg);
 
                             result["result"] = "ok";
-                            result["id"] = msg["id"];
+                            result["_id"] = msg["_id"];
 
                             sendJSON(ws, result);
                         } catch (e) {
@@ -188,7 +188,7 @@ module.exports = (server, db) => {
                     try {
                         sendJSON(ws, {
                             result: err,
-                            id: msg["id"]
+                            id: msg["_id"]
                         });
                     } catch (e) {
                         console.error("Failed to send error message: ");
