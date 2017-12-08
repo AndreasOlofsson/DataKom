@@ -11,21 +11,21 @@ module.exports = (server, db) => {
         if (typeof date !== "string") {
             throw 'Bad Request ("date" is not a string)';
         }
-        
+
         date = date.split("-");
-        
+
         if (date.length !== 3) {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
-        
+
         return date;
     }
-    
+
     async function getAvailable(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
         }
-        
+
         let date = parseDate(msg["date"]);
 
         let available;
@@ -49,7 +49,7 @@ module.exports = (server, db) => {
         let date = parseDate(msg["date"]);
 
         let bookings;
-        
+
         try {
             bookings = await db.getBookings(
                 new Date(Date.UTC(date[0], date[1] - 1, date[2])),
@@ -58,7 +58,7 @@ module.exports = (server, db) => {
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
-        
+
         return {
             bookings: bookings
         };
@@ -66,37 +66,37 @@ module.exports = (server, db) => {
 
     async function removeBooking(ws, msg) {
         const id = msg["bookingID"];
-        
+
         try {
             await db.removeBooking(id);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
-        
+
         return true;
     }
 
     async function confirmBooking(ws, msg) {
         const id = msg["bookingID"];
-        
+
         try {
             await db.changeBookingStatus(id, "Confirmed");
         } catch (e) {
             throw "Error on confirm booking";
         }
-        
+
         return true;
     }
 
     async function unConfirmBooking(ws, msg) {
         const id = msg["bookingID"];
-        
+
         try {
             await db.changeBookingStatus(id, "Pending");
         } catch (e) {
             throw "Error on unConfirmBooking";
         }
-        
+
         return true;
     }
 
@@ -104,9 +104,9 @@ module.exports = (server, db) => {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
         }
-        
+
         const date = parseDate(msg["date"]);
-        
+
         let available = [];
         try {
             for (i = 0; i < 30; i++) {
@@ -115,13 +115,13 @@ module.exports = (server, db) => {
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
-        
+
         return available;
     }
 
     function validateEmail(email) {
         let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        
+
         return re.test(email);
     }
 
@@ -152,9 +152,9 @@ module.exports = (server, db) => {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
         }
-        
+
         let date = parseDate(msg["date"]);
-        
+
         try {
             return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
         } catch (e) {
@@ -177,7 +177,8 @@ module.exports = (server, db) => {
                         unConfirmBooking: unConfirmBooking,
                         removeBooking: removeBooking,
                         getAvailable: getAvailable,
-                        addBooking: addBooking
+                        addBooking: addBooking,
+                        getBookingsDate: getBookingsDate
                     }[msg["request"]];
 
                     if (func) {
