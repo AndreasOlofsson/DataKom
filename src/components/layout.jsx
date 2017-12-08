@@ -60,7 +60,6 @@ class UserForms extends React.Component {
     changeEmail(newEmail) {
         this.setState({ email: newEmail });
     }
-
     changeDate(newDate) {
         var str = this.state.time.split('.');
         newDate.setHours(parseFloat(str[0]));
@@ -69,7 +68,7 @@ class UserForms extends React.Component {
         this.setState({ date: newDate });
     }
     isDateAvailable(newDate) {
-        const date = new Date(newDate.getDate());
+        const date = newDate;
         ws.send({
             request: "getAvailable",
             date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
@@ -77,15 +76,13 @@ class UserForms extends React.Component {
         (msg) => {
             console.log(msg);
             if (msg["available"] === false) {
-            window.alert("date not available..");
+            window.alert("date not available.. Choose another date:");
             }
             else if (msg["available"] === true) {
-            console.log("msg === true");
             this.changeDate(newDate); // date is available, change it!
             }
         });
     }
-
     sendBooking() {
         ws.send({
             request: "addBooking",
