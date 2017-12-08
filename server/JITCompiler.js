@@ -21,9 +21,10 @@ fs.mkdirsSync = (path) => {
 };
 
 class JITCompiler {
-    constructor(compiler, cachePath) {
+    constructor(compiler, cachePath, rootPath = './') {
         this.compiler = compiler;
         this.cachePath = cachePath && pathUtil.resolve(pathUtil.dirname(module.parent.filename), cachePath);
+        this.rootPath = pathUtil.resolve(pathUtil.dirname(module.parent && module.parent.filename || './'), rootPath);
         
         this.includes = [];
 
@@ -49,34 +50,9 @@ class JITCompiler {
     }
 
     require(path) {
-        let resolved;
-        try {
-            resolved = require.resolve(path);
-        } catch (_) {}
-        
-        if (!resolved) {
-            this.includes.find((includePath) => {
-                const includedPath = pathUtil.resolve(includePath, path);
-                
-                try {
-                    if (fs.statSync(includedPath).isFile()) {
-                        resolved = includedPath;
-                        return true;
-                    }
-                } catch (_) {}
-                
-                try {
-                    if (fs.statSync(includedPath + '.js').isFile()) {
-                        resolved = includedPath + '.js';
-                        return true;
-                    }
-                } catch (_) {}
-                
-                return false;
-            });
-        }
-        
         return new Promise((resolve, reject) => {
+            const resolved = this._resolvePath(path);
+            
             if (!resolved) {
                 reject(`Couldn't find module '${ path }'`);
             }
@@ -187,6 +163,86 @@ class JITCompiler {
                     }
                 }
             });
+        });
+    }
+    
+    _resolvePath(path) {
+        if (this.resolveCache && this.resolveCache[path]) {
+            return this.resolveCache[path];
+        }
+        
+        let resolved = null;
+        
+        this.includes.concat(this._getModulePaths()).find((includePath) => {
+            try {
+                let resolvedPath = pathUtil.resolve(includePath, path);
+                
+                let stat = fs.statSync(resolvedPath);
+                
+                if (stat.isFile()) {
+                    resolved = resolvedPath;
+                    return true;
+                } else if (stat.isDirectory()) {
+                    let targetFile = './index.js';
+                    
+                    try {
+                        let packageJSON = fs.readFileSync(pathUtil.resolve(includePath, path, './package.json'));
+                        packageJSON = JSON.parse(packageJSON);
+                        
+                        if (packageJSON && packageJSON.main) {
+                            targetFile = packageJSON.main;
+                        }
+                    } catch (_) {}
+
+                    resolvedPath = pathUtil.resolve(includePath, path, targetFile);
+                    
+                    stat = fs.statSync(resolvedPath);
+                    
+                    if (stat.isFile()) {
+                        resolved = resolvedPath;
+                        return true;
+                    }
+                }
+            } catch (_) {}
+            
+            try {
+                let resolvedPath = pathUtil.resolve(includePath, `${ path }.js`);
+                
+                let stat = fs.statSync(resolvedPath);
+                
+                if (stat.isFile()) {
+                    resolved = resolvedPath;
+                    return true;
+                }
+            } catch(_) {}
+
+            return false;
+        });
+        
+        if (!this.resolveCache) this.resolveCache = [];
+        
+        this.resolveCache[path] = resolved;
+        
+        return resolved;
+    }
+    
+    _getModulePaths() {
+        const modulePaths = [this.rootPath];
+        
+        for (let path = this.rootPath;;) {
+            modulePaths.push(path);
+            
+            const dirname = pathUtil.dirname(path);
+            
+            if (dirname === path) {
+                break;
+            }
+            
+            path = dirname;
+        }
+        
+        return modulePaths.map((path) => {
+            return pathUtil.resolve(path, './node_modules/')
         });
     }
 }

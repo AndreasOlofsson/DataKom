@@ -89,12 +89,16 @@ var module = new class Module {
     }
 };
 var require = function(path) {
-    const pathMatch = path.match(/^(\\.)?\\/(.*)/);
+    const pathMatch = path.match(/^(\\.\\.?)?\\/(.*)/);
     
     if (pathMatch) {
         path = \`\${
             pathMatch[1] ?
-            \`/require/\${ require.__dirname.replace(/:/g, '_') }/\`
+            \`/require/\${
+                require.__dirname.replace(/:/g, '_')
+            }/\${
+                pathMatch[1] === '..' ? '../' : ''
+            }\`
             : ''
         }\${ pathMatch[2] }\`;
     } else {
@@ -113,14 +117,15 @@ var require = function(path) {
     }
 };
 require.__dirname = ${ JSON.stringify(pathDir) };
-(function(exports, module, require, self, __filename, __dirname) {
+module.require = require;
+(function(exports, module, mod, require, self, __filename, __dirname) {
 ${ transformedCode }
-})(module.exports, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
+})(module.exports, module, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
 return module;
 })();`;
         
         return wrappedCode;
-    }, '../jit-cache/');
+    }, '../jit-cache/', '../');
     
     jit.include('../src/');
 

@@ -37,25 +37,35 @@ class UserForms extends React.Component {
         this.state = {
             amountGuests: '1',  // initially set to 1 person
             date: new Date(Date.now()),
-            time: '18.00',
+            time: "18.00",
             name: '',
             email: ''
         };
     }
     changeAmount(newAmount) {
-        this.setState({amountGuests: newAmount});
+        this.setState({ amountGuests: newAmount });
     }
     changeDate(newDate) {
-        this.setState({date: newDate});
+        var str = this.state.time.split('.');
+        newDate.setHours(parseFloat(str[0]));
+        newDate.setMinutes(parseFloat(str[1]));
+        newDate.toUTCString();
+        this.setState({ date: newDate });
     }
     changeTime(newTime) {
-        this.setState({time: newTime});
+        this.setState({ time: newTime });
+        var str = newTime.split('.');
+        var newDate = this.state.date;
+        newDate.setHours(parseFloat(str[0]));
+        newDate.setMinutes(parseFloat(str[1]));
+        newDate.toUTCString();
+        this.setState({ date: newDate });
     }
     changeName(newName) {
-        this.setState({name: newName});
+        this.setState({ name: newName });
     }
     changeEmail(newEmail) {
-        this.setState({email: newEmail});
+        this.setState({ email: newEmail });
     }
     sendBooking() {
         ws.send({
@@ -63,7 +73,6 @@ class UserForms extends React.Component {
             booking: {
                 amountGuests: this.state.amountGuests,
                 date: this.state.date,
-                time: this.state.time,
                 name: this.state.name,
                 email: this.state.email
             }
@@ -74,7 +83,10 @@ class UserForms extends React.Component {
         });
     }
     render() {
-        console.log(this.state);
+        console.log(this.state.amountGuests);
+        console.log(this.state.date);
+        console.log(this.state.name);
+        console.log(this.state.email);
         return (
             <div>
                 <p> Begin by entering how many people you are and then choose an available date</p>
@@ -95,8 +107,8 @@ class UserForms extends React.Component {
                           });
                       } } />
                 <MiscForms
-                        changeTime={this.changeTime.bind(this)}
-                        changeName={this.changeName.bind(this)}
+                        changeTime ={this.changeTime.bind(this)}
+                        changeName ={this.changeName.bind(this)}
                         changeEmail={this.changeEmail.bind(this)}
                         sendBooking={this.sendBooking.bind(this)}
                         />
@@ -133,7 +145,7 @@ class SubmitForm extends React.Component {
 class MiscForms extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {time: '', name: '', email: ''};
+        this.state = {time: "18.00", name: '', email: ''};
     }
     handleTimeChange(e) {
         this.setState({time: e.target.value});

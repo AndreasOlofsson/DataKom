@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Layout } from "./components/layout.jsx";
+import { HelloWorld } from "./components/test.jsx";
 
 class App extends React.Component {
     render() {
