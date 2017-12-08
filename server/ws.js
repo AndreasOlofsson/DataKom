@@ -7,18 +7,26 @@ module.exports = (server, db) => {
         ws.send(JSON.stringify(data));
     }
 
-    async function getAvailable(ws, msg) {
-        let date = msg["date"];
-
+    function parseDate(date) {
         if (typeof date !== "string") {
             throw 'Bad Request ("date" is not a string)';
         }
-
+        
         date = date.split("-");
-
+        
         if (date.length !== 3) {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
+        
+        return date;
+    }
+    
+    async function getAvailable(ws, msg) {
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+        
+        let date = parseDate(msg["date"]);
 
         let available;
 
@@ -34,10 +42,14 @@ module.exports = (server, db) => {
     }
 
     async function getBookingsDate(ws, msg) {
-        var date = msg["getBookingsDate"];
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
 
-        date = date.split("-");
+        let date = parseDate(msg["date"]);
+
         let bookings;
+        
         try {
             bookings = await db.getBookings(
                 new Date(Date.UTC(date[0], date[1] - 1, date[2])),
@@ -46,45 +58,56 @@ module.exports = (server, db) => {
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
+        
         return {
             bookings: bookings
         };
     }
 
     async function removeBooking(ws, msg) {
-        var id = msg["removeBooking"];
+        const id = msg["bookingID"];
+        
         try {
             await db.removeBooking(id);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
+        
         return true;
     }
 
     async function confirmBooking(ws, msg) {
-        var id = msg["confirmBooking"];
+        const id = msg["bookingID"];
+        
         try {
             await db.changeBookingStatus(id, "Confirmed");
         } catch (e) {
             throw "Error on confirm booking";
         }
+        
         return true;
     }
 
     async function unConfirmBooking(ws, msg) {
-        var id = msg["unConfirmBooking"];
+        const id = msg["bookingID"];
+        
         try {
             await db.changeBookingStatus(id, "Pending");
         } catch (e) {
             throw "Error on unConfirmBooking";
         }
+        
         return true;
     }
 
     async function getDaysWithBooking(ws, msg) {
-        var date = msg["getDaysWithBooking"];
-        date = date.split("-");
-        var available = [];
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+        
+        const date = parseDate(msg["date"]);
+        
+        let available = [];
         try {
             for (i = 0; i < 30; i++) {
                 available[i] = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, i)));
@@ -92,25 +115,14 @@ module.exports = (server, db) => {
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
+        
         return available;
     }
 
     function validateEmail(email) {
-        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        
         return re.test(email);
-    }
-
-    function validDate(date) {
-        if (typeof date !== "string") {
-            throw 'Bad Request ("date" is not a string)';
-        }
-
-        date = date.split("-");
-
-        if (date.length !== 3) {
-            throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
-        }
-        return true;
     }
 
     async function addBooking(ws, msg) {
@@ -137,13 +149,16 @@ module.exports = (server, db) => {
     }
 
     async function markDayAsFull(ws, msg) {
-        let date = msg["markDayAsFull"];
-        if (validDate(date)) {
-            try {
-                response = await db.markDayAsFull(date);
-            } catch (e) {
-                throw "Server Error (DB access failed)";
-            }
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+        
+        let date = parseDate(msg["date"]);
+        
+        try {
+            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+        } catch (e) {
+            throw "Server Error (DB access failed)";
         }
     }
 
