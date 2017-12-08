@@ -163,7 +163,8 @@ module.exports = (server, db) => {
                         unConfirmBooking: unConfirmBooking,
                         removeBooking: removeBooking,
                         getAvailable: getAvailable,
-                        addBooking: addBooking
+                        addBooking: addBooking,
+                        getBookingsDate: getBookingsDate
                     }[msg["request"]];
 
                     if (func) {
