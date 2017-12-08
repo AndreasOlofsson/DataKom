@@ -20,13 +20,14 @@ class ListView extends React.Component {
       ? "Unconfirm"
       : "Confirm";
 
-    const list = bookings.map((booking, i) =>
-     <BookingButton title={this.props.data[i].name}
-                    text={"Efternamn: " + this.props.data[i].lastname}
-                    bText={bText}
-                    func={() => this.state.clickConfirm()}
-                    funcDelete={() => this.state.clickDelete()}
-                    key={this.props.data[i].name}/>);
+    const list = bookings
+        .filter((booking) => confirmed === (booking.status === "confirmed"))
+        .map((booking, i) =>
+            <BookingButton data={this.props.data[i]}
+                           bText={bText}
+                           funcConfirm={() => this.state.clickConfirm(i)}
+                           funcDelete={() => this.state.clickDelete(i)}
+                           key={this.props.data[i].name}/>);
     return list;
   }
 

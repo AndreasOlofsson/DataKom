@@ -20,7 +20,7 @@ back-button {
   height: 32px;
   width: 90%;
   margin-bottom: 2px;
-  padding: 2px;
+  padding: 5px;
 
   border: 1px solid black;
   border-radius: 2px;
@@ -29,16 +29,20 @@ back-button {
   background-color: #E0E0E0;
 }
 .booking-button-expanded {
-  height: 122px;
-  width: 90%;
+  height: 200px;
+  width: 100%;
   margin-bottom: 2px;
-  padding: 2px;
+  padding: 5px;
 
   border: 1px solid black;
   border-radius: 2px;
 
   color: black;
   background-color: #F2F2F2;
+}
+
+.booking-button-expanded > p {
+    white-space: pre;
 }
 
 .booking-button:hover {

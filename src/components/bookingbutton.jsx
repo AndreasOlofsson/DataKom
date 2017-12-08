@@ -20,18 +20,20 @@ class BookingButton extends React.Component {
   renderView() {
     if (this.state.expanded) {
       return (<div className="booking-button-expanded" onClick={this.handleExpand}>
-        <p>{this.props.title}</p>
-        <p>{this.props.text}</p>
-        <button onClick={this.props.func}>
-          {this.props.bText}
+        <p>{this.props.data.name}</p>
+        <p>{"Antal: " + this.props.data.number}</p>
+        <p>{"Email: " + this.props.data.email}</p>
+        <p>{"Fritext: " + this.props.data.text}</p>
+        <button onClick={this.props.funcConfirm}>
+            {this.props.bText}
         </button>
         <button onClick={this.props.funcDelete}>
           Delete
-        </button>
+      </button>
       </div>);
     } else {
       return (<div className="booking-button" onClick={this.handleExpand}>
-        <p>{this.props.title}</p>
+        <p>{this.props.data.name}</p>
       </div>);
     }
   }

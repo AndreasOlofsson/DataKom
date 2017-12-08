@@ -13,7 +13,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      viewMode: false, //True = Calendar, False = ListView
+      viewMode: true, //True = Calendar, False = ListView
       date: new Date(Date.now()), //Todays Date
       /*
             name: name,
@@ -23,31 +23,6 @@ class App extends React.Component {
             text: text,
             status: "" pending//confirmed
             //emails: [], Kanske
-      */
-      /*
-      bookings: [
-        {
-          name: "Valter Gådin",
-          email: "valter94@live.se",
-          number: 5,
-          confirmed: false
-        }, {
-          name: "Melker Forsell",
-          email: "melker_fotboll@hotmail.com",
-          number: 4,
-          confirmed: false
-        }, {
-          name: "Andreas Olofsson",
-          email: "SnyggAndreas@gmail.com",
-          number: 3,
-          confirmed: true
-        }, {
-          name: "Gustav Janer",
-          email: "Gustav@Janer.se",
-          number: 10,
-          confirmed: true
-        }
-      ]
       */
       bookings: null
     };
@@ -73,10 +48,12 @@ class App extends React.Component {
       request: "getBookingsDate",
       date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
     }, (msg) => {
-        console.log(`callback ${ msg }`);
+        //console.log(`callback ${ msg }`);
       if (msg["bookings"]) {
 
         var bookings = msg["bookings"];
+
+        console.log(bookings);
 
         this.setState({bookings: bookings});
       }
@@ -91,8 +68,8 @@ class App extends React.Component {
   handleClickConfirm(i) {
     let bookings = this.state.bookings.slice();
     const toConfirm = bookings.splice(i, 1)[0];
-    toConfirm.confirmed = true;
-    bookings.splice(i, 0, toConfirm[0]);
+    toConfirm.status = toConfirm.status === "pending" ? "confirmed" : "pending";
+    bookings.splice(i, 0, toConfirm);
 
     //    console.log("index: " + i);
     //    console.log(toConfirm.name + ", status: " + toConfirm.confirmed);
