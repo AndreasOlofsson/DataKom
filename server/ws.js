@@ -163,7 +163,8 @@ module.exports = (server, db) => {
                         unConfirmBooking: unConfirmBooking,
                         removeBooking: removeBooking,
                         getAvailable: getAvailable,
-                        addBooking: addBooking
+                        addBooking: addBooking,
+                        getBookingsDate: getBookingsDate
                     }[msg["request"]];
 
                     if (func) {
@@ -188,7 +189,7 @@ module.exports = (server, db) => {
                     try {
                         sendJSON(ws, {
                             result: err,
-                            id: msg["_id"]
+                            _id: msg["_id"]
                         });
                     } catch (e) {
                         console.error("Failed to send error message: ");
