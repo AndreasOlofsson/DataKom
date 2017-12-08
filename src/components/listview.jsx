@@ -6,29 +6,26 @@ class ListView extends React.Component {
     super(props);
 
     this.state = {
-      clickConfirm: this.props.clickConfirm,
-      clickDelete: this.props.clickDelete
+      clickDelete: this.props.clickDelete,
+      clickConfirm: this.props.clickConfirm
     };
   }
 
   buttonList(confirmed) {
-    if (this.props.data.length === 0) {
+    if (this.props.data === null || this.props.data.length === 0) {
       return;
     }
     const bookings = this.props.data.slice();
-    const func = confirmed
-      ? this.state.clickDelete
-      : this.state.clickConfirm;
-
     const bText = confirmed
-      ? "delete"
-      : "confirm";
+      ? "Unconfirm"
+      : "Confirm";
 
     const list = bookings.map((booking, i) =>
      <BookingButton title={this.props.data[i].name}
                     text={"Efternamn: " + this.props.data[i].lastname}
                     bText={bText}
-                    func={() => func(i)}
+                    func={() => this.state.clickConfirm()}
+                    funcDelete={() => this.state.clickDelete()}
                     key={this.props.data[i].name}/>);
     return list;
   }
@@ -37,12 +34,12 @@ class ListView extends React.Component {
     return (<div>
       <div id="unconfirmed-list" className="lists">
         <h2>Unconfirmed</h2>
-        {/*this.buttonList(false)*/}
+        {this.buttonList(false)}
       </div>
 
       <div id="confirmed-list" className="lists">
         <h2>Confirmed</h2>
-        {/*this.buttonList(true)*/}
+        {this.buttonList(true)}
       </div>
     </div>);
   }
