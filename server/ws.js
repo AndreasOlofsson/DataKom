@@ -46,7 +46,7 @@ module.exports = (server, db) => {
             throw 'Bad Request ("date" is missing)';
         }
 
-        let date = parseDate(msg["date"]);§
+        let date = parseDate(msg["date"]);
 
         let bookings;
 

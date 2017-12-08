@@ -74,7 +74,7 @@ class UserForms extends React.Component {
             date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
         },
         (msg) => {
-            console.log(msg);
+            // console.log(msg);
             if (msg["available"] === false) {
             window.alert("date not available.. Choose another date:");
             }
@@ -94,9 +94,9 @@ class UserForms extends React.Component {
             }
         }, (msg) => {
             console.log(msg);
-            "booking sent"
+            // "booking sent"
         }, (err) => {
-            "booking unsuccessful"
+            // "booking unsuccessful"
         });
     }
     render() {
