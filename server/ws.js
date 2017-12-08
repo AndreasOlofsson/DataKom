@@ -8,7 +8,6 @@ module.exports = (server, db) => {
     }
 
     async function getAvailable(ws, msg) {
-        if (msg["date"]) {
             let date = msg["date"];
 
             if (typeof date !== "string") {
@@ -34,13 +33,10 @@ module.exports = (server, db) => {
             return {
                 available: available
             };
-        } else {
-            throw 'bad request ("date" missing)';
         }
-    }
+
 
     async function getBookingsDate(ws, msg) {
-        if (msg["getBookingsDate"]) {
             var date = msg["getBookingsDate"];
 
             date = date.split("-");
@@ -48,7 +44,7 @@ module.exports = (server, db) => {
             try {
                 bookings = await db.getBookings(
                     new Date(Date.UTC(date[0], date[1] - 1, date[2])),
-                    new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
+                    new Date(Date.UTC(date[0], date[1] - 1, date[2]+1))
                 );
             } catch (e) {
                 throw "Server Error (DB access failed)";
@@ -56,13 +52,10 @@ module.exports = (server, db) => {
             return {
                 bookings: bookings
             };
-        } else {
-            throw 'bad request ("bookings" missing)';
         }
-    }
+
 
     async function removeBooking(ws, msg) {
-        if (msg["removeBooking"]) {
             var id = msg["removeBooking"];
             try {
                 await db.removeBooking(id);
@@ -70,13 +63,9 @@ module.exports = (server, db) => {
                 throw "Server Error (DB access failed)";
             }
             return true;
-        } else {
-            throw "bad request ";
-        }
     }
 
     async function confirmBooking(ws, msg) {
-        if (msg["confirmBooking"]) {
             var id = msg["confirmBooking"];
             try {
                 await db.changeBookingStatus(id, "Confirmed");
@@ -84,13 +73,13 @@ module.exports = (server, db) => {
                 throw "Error on confirm booking";
             }
             return true;
-        } else {
+         else {
             throw "bad request ";
         }
-    }
+      }
+
 
     async function unConfirmBooking(ws, msg) {
-        if (msg["unConfirmBooking"]) {
             var id = msg["unConfirmBooking"];
             try {
                 await db.changeBookingStatus(id, "Pending");
@@ -98,15 +87,22 @@ module.exports = (server, db) => {
                 throw "Error on unConfirmBooking";
             }
             return true;
-        } else {
-            throw "bad request ";
         }
+
+    async function getDaysWithBooking(ws, msg) {
+      var date = msg["getDaysWithBooking"];
+      date = date.split("-");
+        var available = [];
+        try {
+          for (i = 0; i < 30; i++) {
+              available[i] = await db.dayAvailable(new Date Date.UTC(date[0],date[1]-1,i )
+        }
+      }catch (e) {
+          throw "Server Error (DB access failed)";
+      }
+      return available;
     }
 
-    async function getDaysWithBooking(year, month) {
-        //array true eller false
-    }
-    //  function editBooking()
 
     function validateEmail(email) {
         var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -127,9 +123,7 @@ module.exports = (server, db) => {
     }
 
     async function addBooking(ws, msg) {
-        if (msg["booking"]) {
             let booking = msg["booking"];
-            console.log(booking);
             if (booking.name.length < 1) {
                 throw "Name is required";
             }
@@ -150,11 +144,9 @@ module.exports = (server, db) => {
             }
             return booking;
         }
-    }
 
-    async function markDayAsFull(ws, msg) {
-        if (msg["id"]) {
-            let date = msg["id"];
+async function markDayAsFull(ws, msg) {
+            let date = msg["markDayAsFull"];
             if (validDate(date)) {
                 try {
                     response = await db.markDayAsFull(date);
@@ -162,9 +154,6 @@ module.exports = (server, db) => {
                     throw "Server Error (DB access failed)";
                 }
             }
-        } else {
-            throw "Error markDayAsFull";
-        }
     }
 
     wss.on("connection", (ws, req) => {
@@ -176,6 +165,12 @@ module.exports = (server, db) => {
                     msg = JSON.parse(msg);
 
                     const func = {
+                        markDayAsFull: markDayAsFull,
+                        markDayAsNotFull: markDayAsNotFull,
+                        getDaysWithBooking: getDaysWithBooking,
+                        confirmBooking: confirmBooking,
+                        unConfirmBooking: unConfirmBooking,
+                        removeBooking:removeBooking,
                         getAvailable: getAvailable,
                         addBooking: addBooking
                     }[msg["request"]];
@@ -185,7 +180,7 @@ module.exports = (server, db) => {
                             let result = await func(ws, msg);
 
                             result["result"] = "ok";
-                            result["_id"] = msg["_id"];
+                            result["id"] = msg["id"];
 
                             sendJSON(ws, result);
                         } catch (e) {
