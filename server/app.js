@@ -57,7 +57,7 @@ app.set("port", (process.env.PORT || port));
 
 app.use("/", express.static("public/index.html"));
 app.use(express.static("public"));
-app.use(express.static("build"), 
+app.use(express.static("build"),
     (req, res, next) => {
         res.setHeader("Content-Type", mime.lookup(req.url));
         next()
@@ -66,14 +66,14 @@ app.use(express.static("build"),
 
 if (dev) {
     const babel = require('babel-core');
-    
+
     const jit = new JITCompiler((code, path, err, callback) => {
         const transformedCode = babel.transform(require + code, {
             presets: path.endsWith('.jsx') ? ['env', 'stage-2', 'react'] : ['env', 'stage-2']
         }).code;
-        
+
         const pathDir = pathUtil.dirname(path);
-        
+
         const wrappedCode =
 `(function() {
 var process = {
@@ -90,7 +90,7 @@ var module = new class Module {
 };
 var require = function(path) {
     const pathMatch = path.match(/^(\\.\\.?)?\\/(.*)/);
-    
+
     if (pathMatch) {
         path = \`\${
             pathMatch[1] ?
@@ -104,11 +104,11 @@ var require = function(path) {
     } else {
         path = \`/node_modules/\${ path }\`
     }
-    
+
     let xhr = new XMLHttpRequest();
     xhr.open("GET", path, false);
     xhr.send(null);
-    
+
     if (xhr.status == 200) {
         var module = eval(xhr.responseText);
         return module.exports;
@@ -123,17 +123,19 @@ ${ transformedCode }
 })(module.exports, module, module, require, { require: require }, ${ JSON.stringify(path) }, ${ JSON.stringify(pathDir) });
 return module;
 })();`;
-        
+
         return wrappedCode;
     }, '../jit-cache/', '../');
-    
+
     jit.include('../src/');
 
     app.use((req, res, next) => {
         const regex = /^\/*(require-rel|require|node_modules)\/+(.*)/;
-        
+
         const path = decodeURI(req.path);
-        
+
+        console.log(`http request for ${ path }`);
+
         const match = path.match(regex);
 
         if (match) {
@@ -141,6 +143,8 @@ return module;
 
             if (match[1] === 'require-rel') {
                 path = `./${ path }`;
+            } else if (match[1] === 'require') {
+                path = `/${ path }`;
             }
 
             jit.require(path)
@@ -187,10 +191,10 @@ process.on('unhandledRejection', (reason, p) => {
     }
 
     console.log("DB connected");
-    
+
     const server = http.createServer(app);
 
     require('./ws.js')(server, db);
-    
+
     server.listen(app.get("port"), () => console.log(`Listening on port ${app.get("port")}`));
 })();
