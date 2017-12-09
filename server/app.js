@@ -7,9 +7,10 @@ const config = require("./config.js");
 const express = require("express");
 const http = require("http");
 const mime = require("mime-types");
-const pathUtil = require("path");
+const pathUtils = require("path");
 
 const dbInterface = require("./db.js");
+const restriction = require("./restriction");
 
 const JITCompiler = require("./JITCompiler.js");
 
@@ -17,7 +18,7 @@ const JITCompiler = require("./JITCompiler.js");
 
 let debug = false;
 let dev = false;
-let port = 1080;
+let port = 80;
 
 // Parsing arguments
 
@@ -53,14 +54,26 @@ const app = express();
 
 let db;
 
+//restriction.restrict('/whole.html', 'default');
+
 app.set("port", process.env.PORT || port);
 
-app.use("/", express.static("public/index.html"));
+app.use((req, res, next) => {
+    if (!restriction.canAccess('', req.path)) {
+        console.log(`denied access to ${ req.path }`);
+        res.render(pathUtils.join(__dirname, '../public/err/403.html'));
+    } else {
+        next();
+    }
+});
+
 app.use(express.static("public"));
 app.use(express.static("build"), (req, res, next) => {
     res.setHeader("Content-Type", mime.lookup(req.url));
     next();
 });
+
+app.engine('html', require('ejs').renderFile);
 
 if (dev) {
     const babel = require("babel-core");
@@ -71,7 +84,7 @@ if (dev) {
                 presets: path.endsWith(".jsx") ? ["env", "stage-2", "react"] : ["env", "stage-2"]
             }).code;
 
-            const pathDir = pathUtil.dirname(path);
+            const pathDir = pathUtils.dirname(path);
 
             const wrappedCode = `(function() {
 var process = {
