@@ -136,6 +136,7 @@ module.exports = async function() {
     }
 
     async function dayAvailable(date) {
+        console.log(`dayAvailable ${ date.toISOString() }`);
         let result = await daysCollection.findOne({
             date: date
         });
@@ -144,7 +145,7 @@ module.exports = async function() {
     }
 
     async function setDayStatus(date, status) {
-        const result = await daysCollection.insertOne(
+        const result = await daysCollection.updateOne(
             {
                 date: date
             },
@@ -152,6 +153,9 @@ module.exports = async function() {
                 $set: {
                     status: status
                 }
+            },
+            {
+                upsert: true
             }
         );
 
