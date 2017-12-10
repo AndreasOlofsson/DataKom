@@ -69,7 +69,7 @@ module.exports = async function() {
     }
 
     async function addBooking(name, email, date, numPeople, text) {
-        return await bookingsCollection.insertOne({
+        const boookings = await bookingsCollection.insertOne({
             name: name,
             email: email,
             date: date,
@@ -79,6 +79,8 @@ module.exports = async function() {
             status: "pending",
             emails: []
         });
+        setDayStatus(new Date(date[0], date[1], date[2]), "booked");
+        return bookings;
     }
 
     async function getBookings(start, end) {
@@ -91,16 +93,12 @@ module.exports = async function() {
         const days = {};
 
         (await bookings.toArray()).forEach(booking => {
-            days[booking.date.toISOString()] = !booking.full;
+            days[booking.date.toISOString()] = booking.status;
         });
 
         console.log(days);
 
         return days;
-    }
-
-    function getDate(booking) {
-        return booking.date;
     }
 
     async function changeBookingStatus(id, status) {
@@ -137,21 +135,21 @@ module.exports = async function() {
             date: date
         });
 
-        if ((await result.count()) < 1) {
+        if ((result.status = "full")) {
             return true;
         }
 
         return false;
     }
 
-    async function setDayFull(date, full = true) {
+    async function setDayStatus(date, status) {
         daysCollection.insertOne(
             {
                 date: date
             },
             {
                 $set: {
-                    full: full
+                    status: status
                 }
             }
         );
@@ -169,7 +167,7 @@ module.exports = async function() {
         removeBooking: removeBooking,
         getBookings: getBookings,
         dayAvailable: dayAvailable,
-        setDayFull: setDayFull,
+        setDayStatus: setDayStatus,
         changeBookingAmount: changeBookingAmount,
         availableMonth: availableMonth,
         debug: {

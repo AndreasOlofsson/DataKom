@@ -102,23 +102,9 @@ module.exports = (server, db) => {
         return true;
     }
 
-    async function getDaysWithBooking(ws, msg) {
-        if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
-        }
-
+    async function GetAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
-
-        let available = [];
-        try {
-            for (i = 0; i < 30; i++) {
-                available[i] = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, i)));
-            }
-        } catch (e) {
-            throw "Server Error (DB access failed)";
-        }
-
-        return available;
+        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
     }
 
     function validateEmail(email) {
@@ -196,7 +182,7 @@ module.exports = (server, db) => {
                         removeBooking: removeBooking,
                         getAvailable: getAvailable,
                         addBooking: addBooking,
-                        getBookingsDate: getBookingsDate
+                        GetAvailableMonth: GetAvailableMonth
                     }[msg["request"]];
 
                     if (func) {
