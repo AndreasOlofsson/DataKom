@@ -197,7 +197,6 @@ module.exports = (server, db) => {
                         getAvailable: getAvailable,
                         addBooking: addBooking,
                         getBookingsDate: getBookingsDate
-
                     }[msg["request"]];
 
                     if (func) {
@@ -231,7 +230,5 @@ module.exports = (server, db) => {
                 }
             })();
         });
-    });
-};
     });
 };
