@@ -125,22 +125,6 @@ module.exports = (server, db) => {
         return re.test(email);
     }
 
-    async function setDayFull(ws, msg) {
-        if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
-        }
-
-        let date = parseDate(msg["date"]);
-
-        try {
-            return await db.setDayFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
-        } catch (e) {
-            console.error(e);
-            
-            throw "Server Error (DB access failed)";
-        }
-    }
-    
     async function setDayStatus(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)'
