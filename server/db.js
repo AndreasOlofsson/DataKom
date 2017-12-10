@@ -79,9 +79,9 @@ module.exports = async function() {
             status: "pending",
             emails: []
         });
-        
+
         // TODO set day as booked
-        
+
         return booking;
     }
 
@@ -112,10 +112,10 @@ module.exports = async function() {
                 }
             }
         );
-        
+
         return result.result.ok;
     }
-    
+
     async function changeBookingAmount(id, numPeople) {
         bookingsCollection.updateOne(
             {
@@ -130,7 +130,9 @@ module.exports = async function() {
     }
 
     async function removeBooking(id) {
-        bookingsCollection.remove({_id: ObjectID(id)});
+        const result = await bookingsCollection.remove({_id: ObjectID(id)});
+
+        return result.result.nRemoved > 0;
     }
 
     async function dayAvailable(date) {
@@ -138,13 +140,11 @@ module.exports = async function() {
             date: date
         });
 
-        return !result || result.status !== 'full';
-
-        
+        return !result || result.status !== "full";
     }
 
     async function setDayStatus(date, status) {
-        daysCollection.insertOne(
+        const result = await daysCollection.insertOne(
             {
                 date: date
             },
@@ -154,6 +154,8 @@ module.exports = async function() {
                 }
             }
         );
+
+        return result.result.ok;
     }
 
     if ((await adminCollection.find({name: config.defaultAdminUsername})).count() < 1) {

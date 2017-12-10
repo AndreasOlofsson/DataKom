@@ -44,7 +44,22 @@ module.exports = (server, db) => {
     }
 
     async function addBooking(ws, msg) {
+        let date = parseDate(msg["date"]);
+
+        let available;
+
+        try {
+            available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+        } catch(e) {
+            throw 'Server Error (DB access failed)';
+        }
+
+        if (!available){
+          throw "Day is full";
+        }
+
         let booking = msg["booking"];
+
         if (booking.name.length < 1) {
             throw "Name is required";
         }
@@ -67,46 +82,52 @@ module.exports = (server, db) => {
             booking: booking
         };
     }
-    
+
     async function removeBooking(ws, msg) {
         const id = msg["bookingID"];
 
+        let result;
+
         try {
-            await db.removeBooking(id);
+            result = await db.removeBooking(id);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
 
-        return true;
+        if (result) {
+            return {};
+        } else {
+            throw 'Bad Request (booking not found)';
+        }
     }
-    
+
     async function setBookingStatus(ws, msg) {
         if (msg['bookingID'] == null) {
             throw 'Bad Request ("bookingID" is missing)';
         }
-        
+
         if (typeof msg['bookingID'] !== 'string') {
             throw 'Bad Request ("bookingID" must be a string)';
         }
-        
+
         if (msg['status'] == null) {
             throw 'Bad Request ("status" is missing)';
         }
-        
+
         if (msg['status'] !== 'confirmed' && msg['status'] !== 'pending') {
             throw 'Bad Request ("status" must be "confirmed" or "pending")';
         }
-        
+
         let result;
-        
+
         try {
             result = await db.changeBookingStatus(msg['id'], msg['status']);
         } catch (e) {
             console.error(e);
-            
+
             throw 'Server Error (DB access failed)';
         }
-        
+
         if (result) {
             return {};
         } else {
@@ -116,6 +137,7 @@ module.exports = (server, db) => {
 
     async function getAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
+
         return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
     }
 
@@ -125,48 +147,32 @@ module.exports = (server, db) => {
         return re.test(email);
     }
 
-    async function setDayFull(ws, msg) {
-        if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
-        }
-
-        let date = parseDate(msg["date"]);
-
-        try {
-            return await db.setDayFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
-        } catch (e) {
-            console.error(e);
-            
-            throw "Server Error (DB access failed)";
-        }
-    }
-    
     async function setDayStatus(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)'
         }
-        
+
         let date = parseDate(msg["date"]);
-        
+
         if (msg["status"] == null) {
             throw 'Bad Request ("status" is missing)'
         }
-        
+
         if (!["empty", "booked", "full"].includes(msg["status"])) {
             throw 'Bad Request ("status" must be one of "empty", "booked" or "full")'
         }
-        
+
         try {
             await db.setDayStatus(new Date(date[0], date[1] - 1, date[2]), msg["status"]);
         } catch (e) {
             console.error(e);
-            
+
             throw "Server Error (DB access failed)";
         }
-        
+
         return {};
     }
-    
+
     wss.on("connection", (ws, req) => {
         ws.on("message", msg => {
             (async function() {
@@ -182,7 +188,7 @@ module.exports = (server, db) => {
 
                         getAvailable: getAvailable,
                         getAvailableMonth: getAvailableMonth,
-                        
+
                         setDayStatus: setDayStatus
                     }[msg["request"]];
 
