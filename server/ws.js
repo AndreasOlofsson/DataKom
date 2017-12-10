@@ -138,7 +138,7 @@ module.exports = (server, db) => {
     async function getAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
 
-        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
+        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1)));
     }
 
     function validateEmail(email) {
