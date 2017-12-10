@@ -1,30 +1,30 @@
-const config = require('./config.js');
+const config = require("./config.js");
 
-const mongodb = require('mongodb').MongoClient;
-const crypto = require('crypto');
+const mongodb = require("mongodb").MongoClient;
+const crypto = require("crypto");
 
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require("mongodb").ObjectID;
 
 module.exports = async function() {
     const db = await mongodb.connect(config.dbURL);
 
-    let bookingsCollection = await db.createCollection('bookings');
+    let bookingsCollection = await db.createCollection("bookings");
 
-    let adminCollection = await db.createCollection('admins');
+    let adminCollection = await db.createCollection("admins");
 
-    let daysCollection = await db.createCollection('days');
+    let daysCollection = await db.createCollection("days");
 
     // end --- Create/get collections
 
     // start --- Create indexes
 
-    if (!await daysCollection.indexExists('date_ttl')) {
+    if (!await daysCollection.indexExists("date_ttl")) {
         await daysCollection.createIndex(
             {
                 date: 1
             },
             {
-                name: 'date_ttl',
+                name: "date_ttl",
                 unique: true,
                 expireAfterSeconds: 60 * 60 * 24 * 14
             }
@@ -51,9 +51,9 @@ module.exports = async function() {
         const salt = crypto.randomBytes(32); // 128-bits
 
         const passwordDigest = crypto
-            .createHmac('sha256', salt)
+            .createHmac("sha256", salt)
             .update(newPassword)
-            .digest('hex');
+            .digest("hex");
 
         return await adminCollection.updateOne(
             {
@@ -76,7 +76,7 @@ module.exports = async function() {
             number: numPeople,
             text: text,
             submitted: new Date(Date.now()),
-            status: 'pending',
+            status: "pending",
             emails: []
         });
     }
@@ -84,6 +84,23 @@ module.exports = async function() {
     async function getBookings(start, end) {
         const bookings = bookingsCollection.find({date: {$gt: start, $lt: end}});
         return await bookings.toArray();
+    }
+
+    async function availableMonth(start, end) {
+        const bookings = daysCollection.find({date: {$gt: start, $lt: end}});
+        const days = {};
+
+        (await bookings.toArray()).forEach(booking => {
+            days[booking.date.toISOString()] = !booking.full;
+        });
+
+        console.log(days);
+
+        return days;
+    }
+
+    function getDate(booking) {
+        return booking.date;
     }
 
     async function changeBookingStatus(id, status) {
@@ -127,7 +144,7 @@ module.exports = async function() {
         return false;
     }
 
-    async function markDayAsFull(date, full = true) {
+    async function setDayFull(date, full = true) {
         daysCollection.insertOne(
             {
                 date: date
@@ -138,12 +155,6 @@ module.exports = async function() {
                 }
             }
         );
-    }
-
-    async function markDayAsNotFull(date) {
-        daysCollection.remove({
-            date: date
-        });
     }
 
     if ((await adminCollection.find({name: config.defaultAdminUsername})).count() < 1) {
@@ -158,9 +169,9 @@ module.exports = async function() {
         removeBooking: removeBooking,
         getBookings: getBookings,
         dayAvailable: dayAvailable,
-        markDayAsFull: markDayAsFull,
-        markDayAsNotFull: markDayAsNotFull,
+        setDayFull: setDayFull,
         changeBookingAmount: changeBookingAmount,
+        availableMonth: availableMonth,
         debug: {
             db: db,
             bookings: bookingsCollection,
