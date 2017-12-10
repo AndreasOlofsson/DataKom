@@ -75,6 +75,26 @@ module.exports = (server, db) => {
 
         return true;
     }
+    
+    async function setBookingStatus(ws, msg) {
+        if (!msg["bookingID"]) {
+            throw 'Bad Request ("bookingID" is missing)';
+        }
+        
+        if (!msg["status"]) {
+            throw 'Bad Request ("status" is missing)';
+        }
+        
+        if (msg["status"] !== "confirmed" && msg["status"] !== "pending") {
+            throw 'Bad Request ("status" must be "confirmed" or "pending")';
+        }
+        
+        try {
+            await db.set
+        } catch () {
+            
+        }
+    }
 
     async function confirmBooking(ws, msg) {
         const id = msg["bookingID"];

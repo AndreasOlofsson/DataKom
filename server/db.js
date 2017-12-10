@@ -98,6 +98,7 @@ module.exports = async function() {
             }
         );
     }
+    
     async function changeBookingAmount(id, numPeople) {
         bookingsCollection.updateOne(
             {
