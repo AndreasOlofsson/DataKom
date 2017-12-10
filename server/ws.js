@@ -43,96 +43,6 @@ module.exports = (server, db) => {
         };
     }
 
-    async function getBookingsDate(ws, msg) {
-        if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
-        }
-
-        let date = parseDate(msg["date"]);
-
-        let bookings;
-
-        try {
-            bookings = await db.getBookings(
-                new Date(Date.UTC(date[0], date[1] - 1, date[2])),
-                new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
-            );
-        } catch (e) {
-            throw "Server Error (DB access failed)";
-        }
-
-        return {
-            bookings: bookings
-        };
-    }
-
-    async function removeBooking(ws, msg) {
-        const id = msg["bookingID"];
-
-        try {
-            await db.removeBooking(id);
-        } catch (e) {
-            throw "Server Error (DB access failed)";
-        }
-
-        return true;
-    }
-    
-    async function setBookingStatus(ws, msg) {
-        if (!msg["bookingID"]) {
-            throw 'Bad Request ("bookingID" is missing)';
-        }
-        
-        if (!msg["status"]) {
-            throw 'Bad Request ("status" is missing)';
-        }
-        
-        if (msg["status"] !== "confirmed" && msg["status"] !== "pending") {
-            throw 'Bad Request ("status" must be "confirmed" or "pending")';
-        }
-        
-        try {
-            await db.set
-        } catch () {
-            
-        }
-    }
-
-    async function confirmBooking(ws, msg) {
-        const id = msg["bookingID"];
-
-        try {
-            await db.changeBookingStatus(id, "Confirmed");
-        } catch (e) {
-            throw "Error on confirm booking";
-        }
-
-        return true;
-    }
-
-    async function unConfirmBooking(ws, msg) {
-        const id = msg["bookingID"];
-
-        try {
-            await db.changeBookingStatus(id, "Pending");
-        } catch (e) {
-            throw "Error on unConfirmBooking";
-        }
-
-        return true;
-    }
-
-    async function GetAvailableMonth(ws, msg) {
-        const date = parseDate(msg["date"]);
-        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
-    }
-
-    function validateEmail(email) {
-        let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-        return re.test(email);
-    }
-
     async function addBooking(ws, msg) {
         let booking = msg["booking"];
         if (booking.name.length < 1) {
@@ -157,6 +67,63 @@ module.exports = (server, db) => {
             booking: booking
         };
     }
+    
+    async function removeBooking(ws, msg) {
+        const id = msg["bookingID"];
+
+        try {
+            await db.removeBooking(id);
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+
+        return true;
+    }
+    
+    async function setBookingStatus(ws, msg) {
+        if (msg['bookingID'] == null) {
+            throw 'Bad Request ("bookingID" is missing)';
+        }
+        
+        if (typeof msg['bookingID'] !== 'string') {
+            throw 'Bad Request ("bookingID" must be a string)';
+        }
+        
+        if (msg['status'] == null) {
+            throw 'Bad Request ("status" is missing)';
+        }
+        
+        if (msg['status'] !== 'confirmed' && msg['status'] !== 'pending') {
+            throw 'Bad Request ("status" must be "confirmed" or "pending")';
+        }
+        
+        let result;
+        
+        try {
+            result = await db.changeBookingStatus(msg['id'], msg['status']);
+        } catch (e) {
+            console.error(e);
+            
+            throw 'Server Error (DB access failed)';
+        }
+        
+        if (result) {
+            return {};
+        } else {
+            throw 'Booking not found';
+        }
+    }
+
+    async function getAvailableMonth(ws, msg) {
+        const date = parseDate(msg["date"]);
+        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
+    }
+
+    function validateEmail(email) {
+        let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+        return re.test(email);
+    }
 
     async function setDayFull(ws, msg) {
         if (!msg["date"]) {
@@ -168,23 +135,38 @@ module.exports = (server, db) => {
         try {
             return await db.setDayFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
         } catch (e) {
+            console.error(e);
+            
             throw "Server Error (DB access failed)";
         }
     }
-    async function setDayNotFull(ws, msg) {
+    
+    async function setDayStatus(ws, msg) {
         if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
+            throw 'Bad Request ("date" is missing)'
         }
-
+        
         let date = parseDate(msg["date"]);
-
+        
+        if (msg["status"] == null) {
+            throw 'Bad Request ("status" is missing)'
+        }
+        
+        if (!["empty", "booked", "full"].includes(msg["status"])) {
+            throw 'Bad Request ("status" must be one of "empty", "booked" or "full")'
+        }
+        
         try {
-            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])), false);
+            await db.setDayStatus(new Date(date[0], date[1] - 1, date[2]), msg["status"]);
         } catch (e) {
+            console.error(e);
+            
             throw "Server Error (DB access failed)";
         }
+        
+        return {};
     }
-
+    
     wss.on("connection", (ws, req) => {
         ws.on("message", msg => {
             (async function() {
@@ -194,15 +176,14 @@ module.exports = (server, db) => {
                     msg = JSON.parse(msg);
 
                     const func = {
-                        setDayFull: setDayFull,
-                        setDayNotFull: setDayNotFull,
-                        getDaysWithBooking: getDaysWithBooking,
-                        confirmBooking: confirmBooking,
-                        unConfirmBooking: unConfirmBooking,
-                        removeBooking: removeBooking,
-                        getAvailable: getAvailable,
                         addBooking: addBooking,
-                        GetAvailableMonth: GetAvailableMonth
+                        removeBooking: removeBooking,
+                        setBookingStatus: setBookingStatus,
+
+                        getAvailable: getAvailable,
+                        getAvailableMonth: getAvailableMonth,
+                        
+                        setDayStatus: setDayStatus
                     }[msg["request"]];
 
                     if (func) {

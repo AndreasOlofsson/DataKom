@@ -69,7 +69,7 @@ module.exports = async function() {
     }
 
     async function addBooking(name, email, date, numPeople, text) {
-        const boookings = await bookingsCollection.insertOne({
+        const booking = await bookingsCollection.insertOne({
             name: name,
             email: email,
             date: date,
@@ -79,8 +79,10 @@ module.exports = async function() {
             status: "pending",
             emails: []
         });
-        setDayStatus(new Date(date[0], date[1], date[2]), "booked");
-        return bookings;
+        
+        // TODO set day as booked
+        
+        return booking;
     }
 
     async function getBookings(start, end) {
@@ -96,13 +98,11 @@ module.exports = async function() {
             days[booking.date.toISOString()] = booking.status;
         });
 
-        console.log(days);
-
         return days;
     }
 
     async function changeBookingStatus(id, status) {
-        bookingsCollection.updateOne(
+        const result = await bookingsCollection.updateOne(
             {
                 _id: ObjectID(id)
             },
@@ -112,6 +112,8 @@ module.exports = async function() {
                 }
             }
         );
+        
+        return result.result.ok;
     }
     
     async function changeBookingAmount(id, numPeople) {
@@ -132,15 +134,13 @@ module.exports = async function() {
     }
 
     async function dayAvailable(date) {
-        let result = await daysCollection.find({
+        let result = await daysCollection.findOne({
             date: date
         });
 
-        if ((result.status = "full")) {
-            return true;
-        }
+        return !result || result.status !== 'full';
 
-        return false;
+        
     }
 
     async function setDayStatus(date, status) {
