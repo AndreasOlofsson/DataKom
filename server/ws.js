@@ -18,7 +18,9 @@ module.exports = (server, db) => {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
 
-        return date.map((num) => { return parseInt(num) });
+        return date.map(num => {
+            return parseInt(num);
+        });
     }
 
     async function getAvailable(ws, msg) {
@@ -120,23 +122,9 @@ module.exports = (server, db) => {
         return true;
     }
 
-    async function getDaysWithBooking(ws, msg) {
-        if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)';
-        }
-
+    async function GetAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
-
-        let available = [];
-        try {
-            for (i = 0; i < 30; i++) {
-                available[i] = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, i)));
-            }
-        } catch (e) {
-            throw "Server Error (DB access failed)";
-        }
-
-        return available;
+        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1));
     }
 
     function validateEmail(email) {
@@ -170,7 +158,7 @@ module.exports = (server, db) => {
         };
     }
 
-    async function markDayAsFull(ws, msg) {
+    async function setDayFull(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
         }
@@ -178,7 +166,20 @@ module.exports = (server, db) => {
         let date = parseDate(msg["date"]);
 
         try {
-            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+            return await db.setDayFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+    }
+    async function setDayNotFull(ws, msg) {
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+
+        let date = parseDate(msg["date"]);
+
+        try {
+            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])), false);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
@@ -193,14 +194,15 @@ module.exports = (server, db) => {
                     msg = JSON.parse(msg);
 
                     const func = {
-                        markDayAsFull: markDayAsFull,
+                        setDayFull: setDayFull,
+                        setDayNotFull: setDayNotFull,
                         getDaysWithBooking: getDaysWithBooking,
                         confirmBooking: confirmBooking,
                         unConfirmBooking: unConfirmBooking,
                         removeBooking: removeBooking,
                         getAvailable: getAvailable,
                         addBooking: addBooking,
-                        getBookingsDate: getBookingsDate
+                        GetAvailableMonth: GetAvailableMonth
                     }[msg["request"]];
 
                     if (func) {
