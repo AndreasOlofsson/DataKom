@@ -18,7 +18,9 @@ module.exports = (server, db) => {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
 
-        return date.map((num) => { return parseInt(num) });
+        return date.map(num => {
+            return parseInt(num);
+        });
     }
 
     async function getAvailable(ws, msg) {
@@ -150,7 +152,7 @@ module.exports = (server, db) => {
         };
     }
 
-    async function markDayAsFull(ws, msg) {
+    async function setDayFull(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
         }
@@ -158,7 +160,20 @@ module.exports = (server, db) => {
         let date = parseDate(msg["date"]);
 
         try {
-            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+            return await db.setDayFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+    }
+    async function setDayNotFull(ws, msg) {
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+
+        let date = parseDate(msg["date"]);
+
+        try {
+            return await db.markDayAsFull(new Date(Date.UTC(date[0], date[1] - 1, date[2])), false);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
@@ -173,7 +188,8 @@ module.exports = (server, db) => {
                     msg = JSON.parse(msg);
 
                     const func = {
-                        markDayAsFull: markDayAsFull,
+                        setDayFull: setDayFull,
+                        setDayNotFull: setDayNotFull,
                         getDaysWithBooking: getDaysWithBooking,
                         confirmBooking: confirmBooking,
                         unConfirmBooking: unConfirmBooking,
@@ -181,6 +197,7 @@ module.exports = (server, db) => {
                         getAvailable: getAvailable,
                         addBooking: addBooking,
                         getBookingsDate: getBookingsDate
+
                     }[msg["request"]];
 
                     if (func) {
@@ -214,5 +231,7 @@ module.exports = (server, db) => {
                 }
             })();
         });
+    });
+};
     });
 };
