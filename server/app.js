@@ -188,7 +188,8 @@ return module;
                             res.setHeader("Content-type", "application/javascript");
                             res.end(result);
                         })
-                        .catch(() => {
+                        .catch((err) => {
+                            console.error(err);
                             next();
                         });
                 });

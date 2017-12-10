@@ -15,10 +15,9 @@ back-button {
 }
 
 
-
 .booking-button {
   height: 32px;
-  width: 90%;
+  width: 100% -4px;
   margin-bottom: 2px;
   padding: 5px;
 
@@ -30,7 +29,7 @@ back-button {
 }
 .booking-button-expanded {
   height: 200px;
-  width: 100%;
+  width: 100% -4px;
   margin-bottom: 2px;
   padding: 5px;
 
@@ -51,7 +50,6 @@ back-button {
 }
 
 .list-container {
-
 
 }
 

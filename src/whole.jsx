@@ -9,13 +9,14 @@ import {WSInterface} from "./lib/wsInterface.js";
 const ws = new WSInterface(); //WebSocket Interface
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.state = {
-      viewMode: true, //True = Calendar, False = ListView
-      date: new Date(Date.now()), //Todays Date
-      /*
+        this.state = {
+            viewMode: true, //True = Calendar, False = ListView
+            date: new Date(Date.now()), //Todays Date
+            /*
+            Bookings
             name: name,
             email: email,
             date: date,
@@ -23,114 +24,117 @@ class App extends React.Component {
             text: text,
             status: "" pending//confirmed
             //emails: [], Kanske
-      */
-      bookings: null
-    };
-  }
+            */
+            bookings: null
+        };
+    }
 
-  /* Function to change the viewmode between
+    /* Function to change the viewmode between
     */
-  changeMode() {
-    this.setState({
-      viewMode: !this.state.viewMode
-    });
-  }
+    changeMode() {
+        this.setState({
+            viewMode: !this.state.viewMode
+        });
+    }
 
-  /* Handles click in the calendarview
-   * Calls function to load bookings and update this.date and this.bookings
+    /** Imports the bookings from the database
+    * @param date The date which the bookings are imported
     */
-  handleClickCalendar(date) {
-    console.log(date);
-    console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
-    //TODO: LÄGG till så att hämta bokningar för dagen
+    importForDate(date) {
+        ws.send({
+            request: "getBookingsDate",
+            date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+        }, (msg) => {
+            //console.log(`callback ${ msg }`);
+            if (msg["bookings"]) {
+                var bookings = msg["bookings"];
+                this.setState({bookings: bookings});
+            }
+        });
 
-    ws.send({
-      request: "getBookingsDate",
-      date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    }, (msg) => {
-        //console.log(`callback ${ msg }`);
-      if (msg["bookings"]) {
+        this.setState({date: date})
+    }
 
-        var bookings = msg["bookings"];
+    /** Handles click in the calendarview
+    * Calls function to load bookings and update this.date and this.bookings
+    * @param date Date object from the Calendar, i.e. the pressed date
+    */
+    handleClickCalendar(date) {
+        console.log(date);
+        console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
 
-        console.log(bookings);
+        this.changeMode();
+        this.importForDate(date); //Overwrites old bookings
+    }
+
+    /**
+    * Confirmes or unconfirmes a booking and updates the database
+    * @param i index för bookningen i den arrayen state.props
+    */
+    handleClickConfirm(i) {
+        //Ändra i databasen
+        let bookings = this.state.bookings.slice();
+
+        //Sends to databasen
+        ws.send({
+            request: "setBookingStatus",
+            bookingID: bookings[i],
+            status: bookings[i].status === "pending"
+                ? "confirmed"
+                : "pending"
+        }, (msg) => {/* TODO Add callback to change the array */
+            const toConfirm = bookings.splice(i, 1)[0];
+            toConfirm.status = toConfirm.status === "pending"
+                ? "confirmed"
+                : "pending";
+            bookings.splice(i, 0, toConfirm);
+        });
 
         this.setState({bookings: bookings});
-      }
-    });
-
-    this.setState({date: date})
-    this.changeMode();
-  }
-
-  /*handleClick, removes a not yet handled booking to the confirmed cue
-    */
-  handleClickConfirm(i) {
-    let bookings = this.state.bookings.slice();
-    const toConfirm = bookings.splice(i, 1)[0];
-    toConfirm.status = toConfirm.status === "pending" ? "confirmed" : "pending";
-    bookings.splice(i, 0, toConfirm);
-
-    //    console.log("index: " + i);
-    //    console.log(toConfirm.name + ", status: " + toConfirm.confirmed);
-
-    //TODO: LÄGG till så att databasen ändrar sig
-    this.setState({bookings: bookings});
-  }
-
-  /* Function to delete a booking
-   */
-  handleClickDelete(i) {
-    if (confirm("Are you sure you want to remove this booking?")) {
-      let bookings = this.state.bookings.slice();
-      let removed = bookings.splice(i, 1);
-      console.log(removed[0].name);
-
-      //TODO: LÄGG till så att databasen ändrar sig
-      this.setState({bookings: bookings});
     }
-  }
 
-  /* Imports the bookings from the database
+    /**
+    * @param i index för bookningen i den arrayen state.props
     */
-  importForDate() {
-    //TODO: fix so that all bokings are loaded for a specified date "this.state.date"
-    //into this.bookings
-  }
+    handleClickDelete(i) {
+        if (confirm("Are you sure you want to remove this booking?")) {
+            let bookings = this.state.bookings.slice();
+            console.log(bookings[i]._id);
 
-  testLog() {
-    const bookings = this.state.bookings.slice();
-    console.log("Längd: " + bookings.length);
-    for (let i = 0; i < bookings.length; i++) {
-      this.handleClickConfirm(i);
-      console.log("Index [" + i + "]:" + bookings[i].confirmed);
+            //Sends to database
+            ws.send({
+                request: "removeBooking",
+                bookingID: `${bookings[i]._id}`
+            }, (msg) => {/* TODO ADD callback to splice out the removed booking */
+                let removed = bookings.splice(i, 1);
+            });
+
+            this.setState({bookings: bookings});
+        }
     }
-    console.log("--");
-  }
 
-  /* Renders the diffrent views depending in the viewMode
+    /* Renders the diffrent views depending in the viewMode
     */
-  renderView() {
-    if (this.state.viewMode) {
-      return (<div>
-        <CalendarView date={this.state.date} onClick={this.handleClickCalendar.bind(this)}/>
-      </div>);
-    } else {
-      return (<div className="list-container">
-        <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
-        <h1>{this.state.date.toDateString()}</h1>
-        <ListView data={this.state.bookings} clickConfirm={this.handleClickConfirm.bind(this)} clickDelete={this.handleClickDelete.bind(this)}/>
-      </div>);
+    renderView() {
+        if (this.state.viewMode) {
+            return (<div>
+                <CalendarView date={this.state.date} onClick={this.handleClickCalendar.bind(this)}/>
+            </div>);
+        } else {
+            return (<div className="list-container">
+                <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
+                <h1>{this.state.date.toDateString()}</h1>
+                <ListView data={this.state.bookings} clickConfirm={this.handleClickConfirm.bind(this)} clickDelete={this.handleClickDelete.bind(this)}/>
+            </div>);
+        }
     }
-  }
 
-  render() {
-    return (<div className="app">
-      <header className="app-header"></header>
-      {this.renderView()}
-      <button onClick={() => this.testLog()}>debug</button>
-    </div>);
-  }
+    render() {
+        return (<div className="app">
+            <header className="app-header"></header>
+            {this.renderView()}
+        </div>);
+    }
 }
 
 ReactDOM.render(<App/>, document.getElementById('root'));
