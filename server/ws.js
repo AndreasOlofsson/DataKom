@@ -134,6 +134,29 @@ module.exports = (server, db) => {
             throw 'Booking not found';
         }
     }
+    
+    async function getBookingsDate(ws, msg) {
+        if (!msg["date"]) {
+            throw 'Bad Request ("date" is missing)';
+        }
+
+        let date = parseDate(msg["date"]);
+
+        let bookings;
+
+        try {
+            bookings = await db.getBookings(
+                new Date(Date.UTC(date[0], date[1] - 1, date[2])),
+                new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
+            );
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+
+        return {
+            bookings: bookings
+        };
+    }
 
     async function getAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
@@ -185,6 +208,7 @@ module.exports = (server, db) => {
                         addBooking: addBooking,
                         removeBooking: removeBooking,
                         setBookingStatus: setBookingStatus,
+                        getBookingsDate: getBookingsDate,
 
                         getAvailable: getAvailable,
                         getAvailableMonth: getAvailableMonth,
