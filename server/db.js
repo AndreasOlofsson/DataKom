@@ -136,7 +136,6 @@ module.exports = async function() {
     }
 
     async function dayAvailable(date) {
-        console.log(`dayAvailable ${ date.toISOString() }`);
         let result = await daysCollection.findOne({
             date: date
         });
