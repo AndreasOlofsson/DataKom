@@ -44,7 +44,9 @@ module.exports = (server, db) => {
     }
 
     async function addBooking(ws, msg) {
-        let date = parseDate(msg["date"]);
+        let booking = msg["booking"];
+        let date = booking.date;
+        parseDate(date);
 
         let available;
 
@@ -58,8 +60,6 @@ module.exports = (server, db) => {
             throw "Day is full";
         }
 
-        let booking = msg["booking"];
-
         if (booking.name.length < 1) {
             throw "Name is required";
         }
@@ -71,7 +71,7 @@ module.exports = (server, db) => {
             booking = await db.addBooking(
                 booking.name,
                 booking.email,
-                booking.date, // blir -1 på servern
+                booking.date, // blir inte ett dateobjekt på servern
                 booking.amountGuests,
                 booking.text
             );
