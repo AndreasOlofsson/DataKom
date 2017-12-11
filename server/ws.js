@@ -50,12 +50,12 @@ module.exports = (server, db) => {
 
         try {
             available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
-        } catch(e) {
-            throw 'Server Error (DB access failed)';
+        } catch (e) {
+            throw "Server Error (DB access failed)";
         }
 
-        if (!available){
-          throw "Day is full";
+        if (!available) {
+            throw "Day is full";
         }
 
         let booking = msg["booking"];
@@ -97,44 +97,44 @@ module.exports = (server, db) => {
         if (result) {
             return {};
         } else {
-            throw 'Bad Request (booking not found)';
+            throw "Bad Request (booking not found)";
         }
     }
 
     async function setBookingStatus(ws, msg) {
-        if (msg['bookingID'] == null) {
+        if (msg["bookingID"] == null) {
             throw 'Bad Request ("bookingID" is missing)';
         }
 
-        if (typeof msg['bookingID'] !== 'string') {
+        if (typeof msg["bookingID"] !== "string") {
             throw 'Bad Request ("bookingID" must be a string)';
         }
 
-        if (msg['status'] == null) {
+        if (msg["status"] == null) {
             throw 'Bad Request ("status" is missing)';
         }
 
-        if (msg['status'] !== 'confirmed' && msg['status'] !== 'pending') {
+        if (msg["status"] !== "confirmed" && msg["status"] !== "pending") {
             throw 'Bad Request ("status" must be "confirmed" or "pending")';
         }
 
         let result;
 
         try {
-            result = await db.changeBookingStatus(msg['id'], msg['status']);
+            result = await db.changeBookingStatus(msg["id"], msg["status"]);
         } catch (e) {
             console.error(e);
 
-            throw 'Server Error (DB access failed)';
+            throw "Server Error (DB access failed)";
         }
 
         if (result) {
             return {};
         } else {
-            throw 'Booking not found';
+            throw "Booking not found";
         }
     }
-    
+
     async function getBookingsDate(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
@@ -160,8 +160,18 @@ module.exports = (server, db) => {
 
     async function getAvailableMonth(ws, msg) {
         const date = parseDate(msg["date"]);
-
-        return await db.availableMonth(new Date(Date.UTC(date[0], date[1] - 1, date[2])),new Date(Date.UTC(date[0], date[1] - 1, date[2]+1)));
+        let days;
+        try {
+            days = await db.availableMonth(
+                new Date(Date.UTC(date[0], date[1] - 1, date[2])),
+                new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
+            );
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+        return {
+            days: days
+        };
     }
 
     function validateEmail(email) {
@@ -172,17 +182,17 @@ module.exports = (server, db) => {
 
     async function setDayStatus(ws, msg) {
         if (!msg["date"]) {
-            throw 'Bad Request ("date" is missing)'
+            throw 'Bad Request ("date" is missing)';
         }
 
         let date = parseDate(msg["date"]);
 
         if (msg["status"] == null) {
-            throw 'Bad Request ("status" is missing)'
+            throw 'Bad Request ("status" is missing)';
         }
 
         if (!["empty", "booked", "full"].includes(msg["status"])) {
-            throw 'Bad Request ("status" must be one of "empty", "booked" or "full")'
+            throw 'Bad Request ("status" must be one of "empty", "booked" or "full")';
         }
 
         try {
