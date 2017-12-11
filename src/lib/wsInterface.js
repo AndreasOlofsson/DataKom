@@ -2,6 +2,7 @@ class WSInterface {
     constructor() {
         this.ws = new WebSocket(`ws://${window.location.host}/ws`);
         this.callbacks = [];
+        this.errorCallbacks = [];
 
         this.ws.onmessage = msg => {
             try {
@@ -15,6 +16,16 @@ class WSInterface {
             if (msg["result"] != "ok") {
                 console.error("An error occurred");
                 console.error(msg);
+
+                const errorCallback = this.errorCallbacks[msg["_id"] - 1];
+
+                if (errorCallback) {
+                    errorCallback(msg);
+                }
+                
+                delete this.callbacks[msg["_id"] - 1];
+                delete this.errorCallbacks[msg["_id"] - 1];
+                
                 return;
             }
 
@@ -33,8 +44,12 @@ class WSInterface {
         };
     }
 
-    send(data, callback) {
+    send(data, callback, errorCallback) {
         data["_id"] = this.callbacks.push(callback);
+        
+        if (errorCallback) {
+            this.errorCallbacks[data["_id"] - 1] = errorCallback;
+        }
 
         if (this.ws.readyState !== 1) {
             if (this.queue) {
