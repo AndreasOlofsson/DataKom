@@ -14,7 +14,7 @@ module.exports = (server, db) => {
 
         date = date.split("-");
 
-        if (date.length !== 3) {
+        if (date.length < 3) {
             throw 'Bad Request ("date" must be in the format "YYYY-MM-DD")';
         }
 
