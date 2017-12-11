@@ -39,7 +39,8 @@ class UserForms extends React.Component {
             date: new Date(Date.now()),
             time: "18.00",
             name: '',
-            email: ''
+            email: '',
+            text: ''
         };
     }
     changeAmount(newAmount) {
@@ -59,6 +60,9 @@ class UserForms extends React.Component {
     }
     changeEmail(newEmail) {
         this.setState({ email: newEmail });
+    }
+    changeText(newText) {
+        this.setState({ text: newText });
     }
     changeDate(newDate) {
         var str = this.state.time.split('.');
@@ -90,7 +94,8 @@ class UserForms extends React.Component {
                 amountGuests: this.state.amountGuests,
                 date: this.state.date,
                 name: this.state.name,
-                email: this.state.email
+                email: this.state.email,
+                text: this.state.text
             }
         }, (msg) => {
             console.log(msg);
@@ -104,11 +109,12 @@ class UserForms extends React.Component {
         console.log(this.state.date);
         console.log(this.state.name);
         console.log(this.state.email);
+        console.log(this.state.text);
         return (
             <div>
                 <p> Begin by entering how many people you are and then choose an available date</p>
-                <SubmitForm changeAmount={this.changeAmount.bind(this)} />
-                <p> Currently showing available dates for {this.state.amountGuests} guests </p>
+                <SubmitForm changeAmount={ this.changeAmount.bind(this) } />
+                <p> Currently showing available dates for { this.state.amountGuests } guests </p>
                 <Calendar
                       onDaySelected={ (date) => this.isDateAvailable(date) }
                       transformDate={ (calendarDate) => {
@@ -124,11 +130,12 @@ class UserForms extends React.Component {
                           });
                       } } />
                 <MiscForms
-                        changeTime ={this.changeTime.bind(this)}
-                        changeName ={this.changeName.bind(this)}
-                        changeEmail={this.changeEmail.bind(this)}
-                        sendBooking={this.sendBooking.bind(this)}
-                        />
+                        changeTime = { this.changeTime.bind(this) }
+                        changeName = { this.changeName.bind(this) }
+                        changeEmail= { this.changeEmail.bind(this) }
+                        changeText = { this.changeText.bind(this) }
+                        sendBooking= { this.sendBooking.bind(this) }
+                />
             </div>
         );
     }
@@ -162,21 +169,25 @@ class SubmitForm extends React.Component {
 class MiscForms extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {time: "18.00", name: '', email: ''};
+        this.state = {time: "18.00", name: '', email: '', text: ''};
     }
     handleTimeChange(e) {
-        this.setState({time: e.target.value});
+        this.setState({ time: e.target.value });
     }
     handleNameChange(e) {
-        this.setState({name: e.target.value});
+        this.setState({ name: e.target.value });
     }
     handleEmailChange(e) {
-        this.setState({email: e.target.value});
+        this.setState({ email: e.target.value });
+    }
+    handleTextChange(e) {
+        this.setState({ text: e.target.value });
     }
     handleSubmit(e) {
         this.props.changeTime(this.state.time);
         this.props.changeName(this.state.name);
         this.props.changeEmail(this.state.email);
+        this.props.changeText(this.state.text);
         this.props.sendBooking();
         e.preventDefault(); //NEEDED
     }
@@ -184,10 +195,10 @@ class MiscForms extends React.Component {
     render() {
         return (
             <div>
-                <form onSubmit={this.handleSubmit.bind(this)}>
+                <form onSubmit={ this.handleSubmit.bind(this) }>
                     <label>
                         Time of arrival:
-                        <select value={this.state.value} onChange={this.handleTimeChange.bind(this)}>
+                        <select value={ this.state.value } onChange={ this.handleTimeChange.bind(this) }>
                             <option value="18.00"> 18.00 </option>
                             <option value="18.30"> 18.30 </option>
                             <option value="19.00"> 19.00 </option>
@@ -196,13 +207,19 @@ class MiscForms extends React.Component {
                     </label>
                     <label>
                         Name:
-                        <input type="text" value={this.state.value} onChange={this.handleNameChange.bind(this)} />
+                        <input type="text" value={ this.state.value } onChange={ this.handleNameChange.bind(this) } />
                     </label>
                     <label>
                         Email:
-                        <input type="text" value={this.state.value} onChange={this.handleEmailChange.bind(this)} />
+                        <input type="text" value={ this.state.value } onChange={ this.handleEmailChange.bind(this) } />
                     </label>
                     <input type="submit" value="Book" />
+                    <label>
+                        <br></br>
+                        Comment:
+                        <br></br>
+                        <textarea type="text" value={ this.state.value } cols="40" rows="5" onChange={ this.handleTextChange.bind(this) } />
+                    </label>
                 </form>
             </div>
         );
