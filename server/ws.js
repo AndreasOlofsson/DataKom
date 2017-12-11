@@ -163,8 +163,8 @@ module.exports = (server, db) => {
         let days;
         try {
             days = await db.availableMonth(
-                new Date(Date.UTC(date[0], date[1] - 1, date[2])),
-                new Date(Date.UTC(date[0], date[1] - 1, date[2] + 1))
+                new Date(Date.UTC(date[0], date[1] - 1, 1)),
+                new Date(Date.UTC(date[0], date[1], 0))
             );
         } catch (e) {
             throw "Server Error (DB access failed)";
