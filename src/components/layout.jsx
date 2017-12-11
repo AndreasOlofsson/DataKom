@@ -98,10 +98,13 @@ class UserForms extends React.Component {
                 text: this.state.text
             }
         }, (msg) => {
-            console.log(msg);
-            // "booking sent"
-        }, (err) => {
-            // "booking unsuccessful"
+            if (msg["result"] === "ok") {
+                window.alert("Booking request was successfully sent. Await confirmation email");
+                location.reload();
+            }
+            else {
+                window.alert("Booking request was unsuccessfully sent.. Try again");
+            }
         });
     }
     render() {
