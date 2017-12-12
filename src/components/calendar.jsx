@@ -59,11 +59,17 @@ class Calendar extends React.Component {
             locale: nextProps.locale,
             startOfWeek: startOfWeek
         });
+       
+        this._isRendering = false;
+        this._forcedRenderRequested = false;
+        this._forcingRender = false;
 
         return true;
     }
 
     render() {
+        this._isRendering = true;
+        
         let viewStartDate = new Date(this.state.year, this.state.month-1);
         viewStartDate.setDate(
             (1
@@ -78,7 +84,7 @@ class Calendar extends React.Component {
 
         const selectedDate = this.state.selectedDate;
 
-        return (
+        const result = (
             <table className="calendar">
                 <thead className="calendar-header">
                     <tr>
@@ -120,6 +126,19 @@ class Calendar extends React.Component {
                 </tbody>
             </table>
         );
+        
+        this._isRendering = false;
+        this._forcingRender = false;
+        
+        if (this._forcedRenderRequested) {
+            this._forcedRenderRequested = false;
+            
+            this._forcingRender = true;
+            
+            setTimeout(() => this.forceUpdate(), 0);
+        }
+        
+        return result;
 
         function renderRow(startDate) {
             return (
@@ -151,10 +170,11 @@ class Calendar extends React.Component {
 
             if (!calendarDate) {
                 calendarDate = new Calendar.CalendarDate(this, date);
-                if (this.props.transformDate) {
-                    this.props.transformDate(calendarDate);
-                    this.state.calendarDates[date.getTime()] = calendarDate;
-                }
+                this.state.calendarDates[date.getTime()] = calendarDate;
+            }
+            
+            if (this.props.transformDate && !this._forcingRender) {
+                this.props.transformDate(calendarDate);
             }
 
             return (
@@ -299,7 +319,13 @@ class Calendar extends React.Component {
         setStatusColor(color) {
             this.statusColor = color;
 
-            this.calendar.forceUpdate()
+            if (!this.calendar._forcedRenderRequested) {
+                this.calendar._forcedRenderRequested = true;
+                if (!this.calendar._isRendering) {
+                    this.calendar._forcingRender = true;
+                    this.calendar.forceUpdate();
+                }
+            }
         }
 
         getStatusColor() {
