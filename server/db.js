@@ -79,7 +79,8 @@ module.exports = async function() {
             status: "pending",
             emails: []
         });
-        setDayStatus(date, "booked");
+
+        setDayStatus(new Date(date.getFullYear, date.getMonth, date.getDate), "booked");
         // TODO set day as booked
 
         return booking;
