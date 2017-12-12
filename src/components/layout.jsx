@@ -37,32 +37,31 @@ class UserForms extends React.Component {
         this.state = {
             amountGuests: '1',  // initially set to 1 person
             date: new Date(Date.now()),
-            time: "18.00",
-            name: '',
-            email: '',
-            text: ''
+            time: "18.00"
         };
     }
     changeAmount(newAmount) {
         this.setState({ amountGuests: newAmount });
     }
     changeTime(newTime) {
-        this.setState({ time: newTime });
-        var str = newTime.split('.');
-        var newDate = this.state.date;
-        newDate.setHours(parseFloat(str[0]));
-        newDate.setMinutes(parseFloat(str[1]));
-        newDate.toUTCString();
-        this.setState({ date: newDate });
+        if (this.state.date != 0) {
+            this.setState({ time: newTime });
+            var str = newTime.split('.');
+            var newDate = this.state.date;
+            newDate.setHours(parseFloat(str[0]));
+            newDate.setMinutes(parseFloat(str[1]));
+            newDate.toUTCString();
+            this.setState({ date: newDate });
+        }
     }
     changeName(newName) {
-        this.setState({ name: newName });
+        this.name = newName;
     }
     changeEmail(newEmail) {
-        this.setState({ email: newEmail });
+        this.email = newEmail;
     }
     changeText(newText) {
-        this.setState({ text: newText });
+        this.text = newText;
     }
     changeDate(newDate) {
         var str = this.state.time.split('.');
@@ -78,41 +77,44 @@ class UserForms extends React.Component {
             date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
         },
         (msg) => {
-            // console.log(msg);
             if (msg["available"] === false) {
-            window.alert("date not available.. Choose another date:");
+                window.alert("date not available.. Choose another date:");
+                this.setState({ date: 0 });
             }
             else if (msg["available"] === true) {
-            this.changeDate(newDate); // date is available, change it!
+                var changeDate = new Date(newDate);
+                this.changeDate(changeDate); // date is available, change it!
             }
         });
     }
     sendBooking() {
-        ws.send({
-            request: "addBooking",
-            booking: {
-                amountGuests: this.state.amountGuests,
-                date: this.state.date,
-                name: this.state.name,
-                email: this.state.email,
-                text: this.state.text
-            }
-        }, (msg) => {
-            if (msg["result"] === "ok") {
-                window.alert("Booking request was successfully sent. Await confirmation email");
-                location.reload();
-            }
-            else {
-                window.alert("Booking request was unsuccessfully sent.. Try again");
-            }
-        });
+        if (this.state.date == 0) {
+            window.alert("chosen date is not available.. Choose another date to proceed:");
+        }
+        else {
+            ws.send({
+                request: "addBooking",
+                booking: {
+                    amountGuests: this.state.amountGuests,
+                    date: this.state.date,
+                    name: this.name,
+                    email: this.email,
+                    text: this.text
+                }
+            }, (msg) => {
+                if (msg["result"] === "ok") {
+                    window.alert("Booking request was successfully sent. Await confirmation email");
+                    location.reload();
+                }
+                else {
+                    window.alert("Booking request was unsuccessfully sent.. Try again");
+                }
+            });
+        }
     }
     render() {
         console.log(this.state.amountGuests);
         console.log(this.state.date);
-        console.log(this.state.name);
-        console.log(this.state.email);
-        console.log(this.state.text);
         return (
             <div>
                 <p> Begin by entering how many people you are and then choose an available date</p>
