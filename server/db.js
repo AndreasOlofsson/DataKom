@@ -113,7 +113,7 @@ module.exports = async function() {
             }
         );
 
-        return result.result.ok;
+        return result.result.nModified > 0;
     }
 
     async function changeBookingAmount(id, numPeople) {
@@ -132,7 +132,7 @@ module.exports = async function() {
     async function removeBooking(id) {
         const result = await bookingsCollection.remove({_id: ObjectID(id)});
 
-        return result.result.nRemoved > 0;
+        return result.result.n > 0;
     }
 
     async function dayAvailable(date) {
