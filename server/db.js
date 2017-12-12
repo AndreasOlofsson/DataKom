@@ -80,7 +80,10 @@ module.exports = async function() {
             emails: []
         });
 
-        setDayStatus(new Date(date.getFullYear, date.getMonth, date.getDate), "booked");
+        setDayStatus(
+            new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())),
+            "booked"
+        );
         // TODO set day as booked
 
         return booking;
