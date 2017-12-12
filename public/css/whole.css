@@ -72,5 +72,15 @@ back-button {
   background-color: #FFF7F7;
 }
 
+.toggle {
+  height: 32px;
+  width: 200px;
+  border: 1px solid black;
+  border-radius: 2px;
+  color: black;
+  background-color: #FFF7F7;
+  margin: 2px;
+  margin-left: 0;
+}
 #unconfirmed-list #confirmed-list {
 }

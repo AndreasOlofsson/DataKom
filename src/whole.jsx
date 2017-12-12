@@ -16,7 +16,9 @@ class App extends React.Component {
         this.state = {
             viewMode: true, //True = Calendar, False = ListView
             date: date, //Todays Date
-            status: "",
+            status: "", //Status for the above date
+            availableMonth: null, //Array of full/booked/or empty||unassigned
+            bookings: null //Array on the form belowe
             /*
             Bookings
             name: name,
@@ -27,8 +29,6 @@ class App extends React.Component {
             status: "" pending//confirmed
             //emails: [], Kanske
             */
-            availableMonth: null,
-            bookings: null
         };
 
         this.importForMonth(date);
@@ -58,7 +58,6 @@ class App extends React.Component {
             if (msg["bookings"]) {
                 var bookings = msg["bookings"];
 
-                console.log(0);
                 if (this.state.availableMonth != null) {
                     if (this.state.availableMonth[temp.toISOString()] != null) {
                         status = this.state.availableMonth[temp.toISOString()];
@@ -126,7 +125,6 @@ class App extends React.Component {
     handleClickDelete(i) {
         if (confirm("Are you sure you want to remove this booking?")) {
             let bookings = this.state.bookings.slice();
-            console.log(bookings[i]._id);
 
             //Sends to database
             ws.send({
@@ -144,8 +142,6 @@ class App extends React.Component {
         const status = this.state.status === "full"
             ? "booked"
             : "full";
-
-            console.log(status);
 
         ws.send({
             request: "setDayStatus",
@@ -171,7 +167,7 @@ class App extends React.Component {
                 <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
                 <h1>{this.state.date.toDateString()}</h1>
                 <button onClick={this.handleClickSetDayStatus.bind(this)}
-                            className={"toggle-" + this.state.status}>Toggle Day Done</button>
+                            className={"toggle"}>Change to {this.state.status === "full" ? "booked" : "full"}</button>
                 <ListView data={this.state.bookings}
                           clickConfirm={this.handleClickConfirm.bind(this)}
                           clickDelete={this.handleClickDelete.bind(this)}/>
