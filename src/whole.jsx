@@ -11,10 +11,24 @@ const ws = new WSInterface(); //WebSocket Interface
 class App extends React.Component {
     constructor(props) {
         super(props);
+        var date = new Date(Date.now());
+
+        ws.send({
+            request: "getAvailableMonth",
+            date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+        }, (msg) => {
+            //console.log(`callback ${ msg }`);
+            if (msg["days"]) {
+                let days = msg["days"];
+                console.log(days);
+                console.log(days["2017-12-24T18:00:00.000Z"]);
+                this.setState({availableMonth: days});
+            }
+        });
 
         this.state = {
             viewMode: true, //True = Calendar, False = ListView
-            date: new Date(Date.now()), //Todays Date
+            date: date, //Todays Date
             /*
             Bookings
             name: name,
@@ -25,6 +39,7 @@ class App extends React.Component {
             status: "" pending//confirmed
             //emails: [], Kanske
             */
+            availableMonth: null,
             bookings: null
         };
     }
@@ -48,11 +63,9 @@ class App extends React.Component {
             //console.log(`callback ${ msg }`);
             if (msg["bookings"]) {
                 var bookings = msg["bookings"];
-                this.setState({bookings: bookings});
+                this.setState({bookings: bookings, date: date});
             }
         });
-
-        this.setState({date: date})
     }
 
     /** Handles click in the calendarview
@@ -60,8 +73,8 @@ class App extends React.Component {
     * @param date Date object from the Calendar, i.e. the pressed date
     */
     handleClickCalendar(date) {
-        console.log(date);
-        console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
+        //console.log(date);
+        //console.log("" + date.getFullYear() + (date.getMonth() + 1) + date.getDate());
 
         this.changeMode();
         this.importForDate(date); //Overwrites old bookings
@@ -74,23 +87,29 @@ class App extends React.Component {
     handleClickConfirm(i) {
         //Ändra i databasen
         let bookings = this.state.bookings.slice();
+        console.log(bookings[i]._id);
 
         //Sends to databasen
         ws.send({
             request: "setBookingStatus",
-            bookingID: bookings[i],
-            status: bookings[i].status === "pending"
-                ? "confirmed"
-                : "pending"
+            bookingID: `${bookings[i]._id}`,
+            status: `${bookings[i].status === "pending"
+                ? "pending"
+                : "confirmed"}`
         }, (msg) => {/* TODO Add callback to change the array */
+            console.log("pre: " + bookings[i].name + " = "+ bookings[i].status);
+
             const toConfirm = bookings.splice(i, 1)[0];
             toConfirm.status = toConfirm.status === "pending"
                 ? "confirmed"
                 : "pending";
             bookings.splice(i, 0, toConfirm);
+
+            console.log("post: " + bookings[i].name + " = "+ bookings[i].status);
+
+            this.setState({bookings: bookings});
         });
 
-        this.setState({bookings: bookings});
     }
 
     /**
@@ -118,13 +137,17 @@ class App extends React.Component {
     renderView() {
         if (this.state.viewMode) {
             return (<div>
-                <CalendarView date={this.state.date} onClick={this.handleClickCalendar.bind(this)}/>
+                <CalendarView date={this.state.date}
+                              onClick={this.handleClickCalendar.bind(this)}
+                              availableMonth={this.state.availableMonth}/>
             </div>);
         } else {
             return (<div className="list-container">
                 <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
                 <h1>{this.state.date.toDateString()}</h1>
-                <ListView data={this.state.bookings} clickConfirm={this.handleClickConfirm.bind(this)} clickDelete={this.handleClickDelete.bind(this)}/>
+                <ListView data={this.state.bookings}
+                          clickConfirm={this.handleClickConfirm.bind(this)}
+                          clickDelete={this.handleClickDelete.bind(this)}/>
             </div>);
         }
     }
