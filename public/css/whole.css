@@ -2,6 +2,21 @@
   background-color: #303030;
 }
 
+.lists {
+  float: left;
+  width: 40%;
+  margin-right: 10px;
+  padding: 5px;
+
+  border: 1px solid black;
+  border-radius: 2px;
+  background-color: #F0F0F0;
+}
+
+.lists > h2 {
+  color: #404040;
+}
+
 back-button {
   height: 32px;
   width: 100px;
@@ -13,7 +28,6 @@ back-button {
 #back-button:hover {
   background-color: #FF7F7F;
 }
-
 
 .booking-button {
   height: 32px;
@@ -49,23 +63,13 @@ back-button {
   background-color: #F0FFF0;
 }
 
-.list-container {
-
-}
-
-.lists {
-  float: left;
-  width: 40%;
-  margin-right: 10px;
-  padding: 5px;
-
+.toggle-full {
+  height: 32px;
+  width: 100px;
   border: 1px solid black;
   border-radius: 2px;
-  background-color: #F0F0F0;
-}
-
-.lists > h2 {
-  color: #404040;
+  color: black;
+  background-color: #FFF7F7;
 }
 
 #unconfirmed-list #confirmed-list {

@@ -31,17 +31,7 @@ class App extends React.Component {
             bookings: null
         };
 
-        //Imports colouring for the calendar
-        ws.send({
-            request: "getAvailableMonth",
-            date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-        }, (msg) => {
-            //console.log(`callback ${ msg }`);
-            if (msg["days"]) {
-                let days = msg["days"];
-                this.setState({availableMonth: days});
-            }
-        });
+        this.importForMonth(date);
     }
 
     /* Function to change the viewmode between
@@ -56,14 +46,41 @@ class App extends React.Component {
     * @param date The date which the bookings are imported
     */
     importForDate(date) {
+        let temp = new Date(date);
+        let status;
+        temp.setHours(1);
+
         ws.send({
             request: "getBookingsDate",
-            date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+            date: `${temp.getFullYear()}-${temp.getMonth() + 1}-${temp.getDate()}`
         }, (msg) => {
             //console.log(`callback ${ msg }`);
             if (msg["bookings"]) {
                 var bookings = msg["bookings"];
-                this.setState({bookings: bookings, date: date});
+
+                console.log(0);
+                if (this.state.availableMonth != null) {
+                    if (this.state.availableMonth[temp.toISOString()] != null) {
+                        status = this.state.availableMonth[temp.toISOString()];
+                    }
+                }
+
+                this.setState({bookings: bookings, date: temp, status: status});
+            }
+        });
+    }
+
+    /**
+    * @param date a date for which the month-data is imported
+    */
+    importForMonth(date) {
+        ws.send({
+            request: "getAvailableMonth",
+            date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+        }, (msg) => {
+            if (msg["days"]) {
+                let days = msg["days"];
+                this.setState({availableMonth: days});
             }
         });
     }
@@ -114,13 +131,29 @@ class App extends React.Component {
             //Sends to database
             ws.send({
                 request: "removeBooking",
-                bookingID: `${bookings[i]._id}`
-            }, (msg) => {/* TODO ADD callback to splice out the removed booking */
+                bookingID: bookings[i]._id
+            }, (msg) => {
                 let removed = bookings.splice(i, 1);
 
                 this.setState({bookings: bookings});
             });
         }
+    }
+
+    handleClickSetDayStatus() {
+        const status = this.state.status === "full"
+            ? "booked"
+            : "full";
+
+            console.log(status);
+
+        ws.send({
+            request: "setDayStatus",
+            date: `${this.state.date.getFullYear()}-${this.state.date.getMonth() + 1}-${this.state.date.getDate()}`,
+            status: `${status}`
+        }, (msg) => {
+            this.importForMonth(this.state.date);
+        });
     }
 
     /* Renders the diffrent views depending in the viewMode
@@ -136,7 +169,9 @@ class App extends React.Component {
         } else {
             return (<div className="list-container">
                 <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
-                <h1>{this.state.date.toDateString()}</h1><button className={this.state.status}>Toggle Day Done</button>
+                <h1>{this.state.date.toDateString()}</h1>
+                <button onClick={this.handleClickSetDayStatus.bind(this)}
+                            className={"toggle-" + this.state.status}>Toggle Day Done</button>
                 <ListView data={this.state.bookings}
                           clickConfirm={this.handleClickConfirm.bind(this)}
                           clickDelete={this.handleClickDelete.bind(this)}/>

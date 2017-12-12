@@ -21,8 +21,6 @@ class CalendarView extends React.Component {
                                 if(this.props.availableMonth != null) {
                                     let temp = new Date(calendarDate.getDate());
                                     temp.setHours(1);
-                                    console.log(this.props.availableMonth);
-                                    console.log(temp.toISOString());
                                     if (this.props.availableMonth[temp.toISOString()] === "booked") {
                                         calendarDate.setStatusColor("#0F0");
                                     } else if (this.props.availableMonth[temp.toISOString()] === "full") {
