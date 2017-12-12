@@ -128,9 +128,9 @@ class App extends React.Component {
                 bookingID: `${bookings[i]._id}`
             }, (msg) => {/* TODO ADD callback to splice out the removed booking */
                 let removed = bookings.splice(i, 1);
-            });
 
-            this.setState({bookings: bookings});
+                this.setState({bookings: bookings});
+            });
         }
     }
 
