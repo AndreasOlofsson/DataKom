@@ -121,13 +121,13 @@ module.exports = (server, db) => {
         let result;
 
         try {
-            result = await db.changeBookingStatus(msg["id"], msg["status"]);
+            result = await db.changeBookingStatus(msg["bookingID"], msg["status"]);
         } catch (e) {
             console.error(e);
 
             throw "Server Error (DB access failed)";
         }
-
+        
         if (result) {
             return {};
         } else {

@@ -113,7 +113,7 @@ module.exports = async function() {
             }
         );
 
-        return result.result.ok;
+        return result.result.nModified > 0;
     }
 
     async function changeBookingAmount(id, numPeople) {

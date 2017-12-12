@@ -86,16 +86,18 @@ class App extends React.Component {
     */
     handleClickConfirm(i) {
         //Ändra i databasen
+        console.log(i, this.state.bookings);
+        
         let bookings = this.state.bookings.slice();
         console.log(bookings[i]._id);
 
         //Sends to databasen
         ws.send({
             request: "setBookingStatus",
-            bookingID: `${bookings[i]._id}`,
-            status: `${bookings[i].status === "pending"
-                ? "pending"
-                : "confirmed"}`
+            bookingID: bookings[i]._id,
+            status: bookings[i].status === "pending"
+                ? "confirmed"
+                : "pending"
         }, (msg) => {/* TODO Add callback to change the array */
             console.log("pre: " + bookings[i].name + " = "+ bookings[i].status);
 
