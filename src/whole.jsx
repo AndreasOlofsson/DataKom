@@ -63,6 +63,7 @@ class App extends React.Component {
             //console.log(`callback ${ msg }`);
             if (msg["bookings"]) {
                 var bookings = msg["bookings"];
+                console.log(bookings);
                 this.setState({bookings: bookings, date: date});
             }
         });
@@ -144,7 +145,7 @@ class App extends React.Component {
         } else {
             return (<div className="list-container">
                 <button id="back-button" onClick={() => this.changeMode()}>Tillbaka</button>
-                <h1>{this.state.date.toDateString()}</h1>
+                <h1>{this.state.date.toDateString()}</h1><button>Toggle Day Done<button/>
                 <ListView data={this.state.bookings}
                           clickConfirm={this.handleClickConfirm.bind(this)}
                           clickDelete={this.handleClickDelete.bind(this)}/>
