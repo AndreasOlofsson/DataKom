@@ -79,7 +79,7 @@ module.exports = async function() {
             status: "pending",
             emails: []
         });
-
+        setDayStatus(date, "booked");
         // TODO set day as booked
 
         return booking;
