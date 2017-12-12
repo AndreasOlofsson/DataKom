@@ -29,7 +29,6 @@ module.exports = (server, db) => {
         }
 
         let date = parseDate(msg["date"]);
-
         let available;
 
         try {
@@ -45,8 +44,9 @@ module.exports = (server, db) => {
 
     async function addBooking(ws, msg) {
         let booking = msg["booking"];
-        let date = booking.date;
-        parseDate(date);
+        let date = parseDate(booking.date);
+        let hour = booking.date.slice(11, 13);
+        let minute = booking.date.slice(14, 15);
 
         let available;
 
@@ -71,7 +71,7 @@ module.exports = (server, db) => {
             booking = await db.addBooking(
                 booking.name,
                 booking.email,
-                booking.date, // blir inte ett dateobjekt på servern
+                new Date(Date.UTC(date[0], date[1] - 1, date[2], hour, minute)), // blir inte ett dateobjekt på servern
                 booking.amountGuests,
                 booking.text
             );
