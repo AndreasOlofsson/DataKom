@@ -14,16 +14,21 @@ class CalendarView extends React.Component {
 
     render() {
         return (<Calendar year={this.state.date.getFullYear()}
-                          month={this.state.date.getMonth() + 1}
-                          onDaySelected={(date) => this.props.onClick(date)}
-                          transformDate={(calendarDate) => {
-                              console.log(calendarDate.getDate())
-
-                              if (calendarDate.getDate().getDate()%2 === 0) {
-                                  calendarDate.setStatusColor("#FF0000");
-                              } else {
-                                  calendarDate.setStatusColor("#00FF00");
-                              }
+                            month={this.state.date.getMonth() + 1}
+                            onDaySelected={(date) => this.props.onClick(date)}
+                            transformDate={(calendarDate) => {
+                                //console.log(calendarDate.getDate())
+                                if(this.props.availableMonth != null) {
+                                    let temp = new Date(calendarDate.getDate());
+                                    temp.setHours(1);
+                                    console.log(this.props.availableMonth);
+                                    console.log(temp.toISOString());
+                                    if (this.props.availableMonth[temp.toISOString()] === "booked") {
+                                        calendarDate.setStatusColor("#0F0");
+                                    } else if (this.props.availableMonth[temp.toISOString()] === "full") {
+                                        calendarDate.setStatusColor("#F00");
+                                    }
+                                }
                             }
                         }
                       />);
