@@ -127,7 +127,7 @@ module.exports = (server, db) => {
 
             throw "Server Error (DB access failed)";
         }
-        
+
         if (result) {
             return {};
         } else {
@@ -196,7 +196,7 @@ module.exports = (server, db) => {
         }
 
         try {
-            await db.setDayStatus(new Date(date[0], date[1] - 1, date[2]), msg["status"]);
+            await db.setDayStatus(new Date(Date.UTC(date[0], date[1] - 1, date[2])), msg["status"]);
         } catch (e) {
             console.error(e);
 
