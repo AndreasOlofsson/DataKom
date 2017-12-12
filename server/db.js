@@ -134,8 +134,23 @@ module.exports = async function() {
     }
 
     async function removeBooking(id) {
+        const booking = await bookingsCollection.findOne({_id: ObjectID(id)});
+        const year = booking.date.getFullYear();
+        const month = booking.date.getMonth();
+        const day = booking.date.getDate();
         const result = await bookingsCollection.remove({_id: ObjectID(id)});
-
+        if (
+            (await bookingsCollection
+                .find({
+                    date: {
+                        $gt: new Date(Date.UTC(year, month, day)),
+                        $lt: new Date(Date.UTC(year, month, day + 1))
+                    }
+                })
+                .count()) < 1
+        ) {
+            setDayStatus(new Date(Date.UTC(year, month, day)), "empty");
+        }
         return result.result.n > 0;
     }
 
