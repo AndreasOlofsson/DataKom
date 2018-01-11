@@ -61,7 +61,7 @@ class Calendar extends React.Component {
         });
        
         this._isRendering = false;
-        this._forcedRenderRequested = false;
+        this._renderRequested = false;
         this._forcingRender = false;
 
         return true;
@@ -69,6 +69,7 @@ class Calendar extends React.Component {
 
     render() {
         this._isRendering = true;
+        this._forcingRender = false;
         
         let viewStartDate = new Date(this.state.year, this.state.month-1);
         viewStartDate.setDate(
@@ -128,14 +129,15 @@ class Calendar extends React.Component {
         );
         
         this._isRendering = false;
-        this._forcingRender = false;
-        
-        if (this._forcedRenderRequested) {
-            this._forcedRenderRequested = false;
-            
-            this._forcingRender = true;
-            
-            setTimeout(() => this.forceUpdate(), 0);
+
+        if (this._renderRequested) {
+            this._renderRequested = false;
+
+            if (!this._forcingRender) {
+                this._forcingRender = true;
+
+                setTimeout(() => this.forceUpdate(), 10);
+            }
         }
         
         return result;
@@ -209,6 +211,17 @@ class Calendar extends React.Component {
                     }
                 </td>
             );
+        }
+    }
+
+    _request_update() {
+        if (this._isRendering) {
+            this._renderRequested = true;
+        } else {
+            if (!this._forcingRender) {
+                this._forcingRender = true;
+                setTimeout(() => this.forceUpdate(), 10);
+            }
         }
     }
 
@@ -319,13 +332,7 @@ class Calendar extends React.Component {
         setStatusColor(color) {
             this.statusColor = color;
 
-            if (!this.calendar._forcedRenderRequested) {
-                this.calendar._forcedRenderRequested = true;
-                if (!this.calendar._isRendering) {
-                    this.calendar._forcingRender = true;
-                    this.calendar.forceUpdate();
-                }
-            }
+            this.calendar._request_update();
         }
 
         getStatusColor() {
