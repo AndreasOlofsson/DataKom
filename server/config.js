@@ -5,8 +5,13 @@ const dbURL      = `mongodb://${dbUsername}:${dbPassword}@ds157185.mlab.com:5718
 const defaultAdminUsername = 'admin';
 const defaultAdminPassword = 'toor';
 
+const guestGroupSize = 4;
+const maxGuestGroupsPerDay = 21;
+
 module.exports = {
     dbURL: dbURL,
     defaultAdminUsername: defaultAdminUsername,
-    defaultAdminPassword: defaultAdminPassword
+    defaultAdminPassword: defaultAdminPassword,
+    guestGroupSize: guestGroupSize,
+    maxGuestGroupsPerDay: maxGuestGroupsPerDay
 };

@@ -35,7 +35,7 @@ class UserForms extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            amountGuests: '1',  // initially set to 1 person
+            amountGuests: '2',  // initially set to 2 persons
             date: new Date(Date.now()),
             time: "18.00"
         };
@@ -74,7 +74,8 @@ class UserForms extends React.Component {
         const date = newDate;
         ws.send({
             request: "getAvailable",
-            date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
+            date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`,
+            amountGuests: this.state.amountGuests
         },
         (msg) => {
             if (msg["available"] === false) {
@@ -118,19 +119,23 @@ class UserForms extends React.Component {
         return (
             <div>
                 <p> Begin by entering how many people you are and then choose an available date</p>
-                <SubmitForm changeAmount={ this.changeAmount.bind(this) } />
+                <SubmitForm changeAmount={ this.changeAmount.bind(this) } placeholder={ 2 } />
                 <p> Currently showing available dates for { this.state.amountGuests } guests </p>
                 <Calendar
-                      onDaySelected={ (date) => this.isDateAvailable(date) }
+                      selectedDate={ this.state.date }
+                      onDaySelected={ (date) => this.selectDate(date) }
                       transformDate={ (calendarDate) => {
                           const date = calendarDate.getDate();
                           ws.send({
                               request: "getAvailable",
-                              date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
+                              date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`,
+                              amountGuests: this.state.amountGuests
                           },
                           (msg) => {
                               if (msg["available"] === false) {
                                   calendarDate.setStatusColor("#FF8080");
+                              } else {
+                                  calendarDate.setStatusColor("#000000");
                               }
                           });
                       } } />

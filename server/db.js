@@ -1,7 +1,6 @@
 const config = require("./config.js");
 
 const mongodb = require("mongodb").MongoClient;
-const crypto = require("crypto");
 
 const ObjectID = require("mongodb").ObjectID;
 
@@ -154,12 +153,64 @@ module.exports = async function() {
         return result.result.n > 0;
     }
 
-    async function dayAvailable(date) {
+    async function dayAvailable(date, amountGuests = 2) {
         let result = await daysCollection.findOne({
             date: date
         });
 
-        return !result || result.status !== "full";
+        if (result && result.status === "full") {
+            return false;
+        }
+
+        let dateNextDay = new Date(Date.UTC(
+            date.getUTCFullYear(),
+            date.getUTCMonth(),
+            date.getUTCDate() + 1));
+
+        try {
+            result = await bookingsCollection.aggregate([
+                {
+                    $match: {
+                        date: {
+                            $gte: date,
+                            $lt: dateNextDay
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: 1,
+                        booked: {
+                            $sum: {
+                                $floor: {
+                                    $divide: [
+                                        {
+                                            $add: [
+                                                "$number",
+                                                config.guestGroupSize - 1
+                                            ]
+                                        },
+                                        config.guestGroupSize
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]).next();
+
+            const guestGroups = ~~((amountGuests + config.guestGroupSize - 1) / config.guestGroupSize);
+
+            if (!result) {
+                return config.maxGuestGroupsPerDay >= guestGroups;
+            }
+
+            console.log(`day ${ date.getYear() }-${ date.getMonth() }-${ date.getDate() } - ${ result.booked } booked - ${ config.maxGuestGroupsPerDay - result.booked } available - ${ guestGroups } requested`);
+
+            return result && config.maxGuestGroupsPerDay - result.booked >= guestGroups;
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async function setDayStatus(date, status) {

@@ -203,6 +203,10 @@ process.on("unhandledRejection", (reason, p) => {
     console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
 });
 
+process.on('uncaughtException', (err) => {
+    console.error(err);
+});
+
 (async function() {
     try {
         db = await dbInterface();
