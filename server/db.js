@@ -205,8 +205,6 @@ module.exports = async function() {
                 return config.maxGuestGroupsPerDay >= guestGroups;
             }
 
-            console.log(`day ${ date.getYear() }-${ date.getMonth() }-${ date.getDate() } - ${ result.booked } booked - ${ config.maxGuestGroupsPerDay - result.booked } available - ${ guestGroups } requested`);
-
             return result && config.maxGuestGroupsPerDay - result.booked >= guestGroups;
         } catch (e) {
             console.error(e);
