@@ -37,7 +37,8 @@ class UserForms extends React.Component {
         this.state = {
             amountGuests: '2',  // initially set to 2 persons
             date: new Date(Date.now()),
-            time: "18.00"
+            time: "18.00",
+            calDate: null
         };
     }
     changeAmount(newAmount) {
@@ -72,21 +73,22 @@ class UserForms extends React.Component {
     }
     isDateAvailable(newDate) {
         const date = newDate;
-        ws.send({
-            request: "getAvailable",
-            date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`,
-            amountGuests: this.state.amountGuests
-        },
-        (msg) => {
-            if (msg["available"] === false) {
-                window.alert("date not available.. Choose another date:");
-                this.setState({ date: 0 });
-            }
-            else if (msg["available"] === true) {
+        ws.send(
+            {
+                request: "reserveTables",
+                date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`,
+                amountGuests: this.state.amountGuests
+            },
+            (msg) => {
                 var changeDate = new Date(newDate);
                 this.changeDate(changeDate); // date is available, change it!
+                this.setState({ calDate: newDate });
+            },
+            (err) => {
+                window.alert("date not available.. Choose another date:");
+                this.setState({ calDate: null });
             }
-        });
+        );
     }
     sendBooking() {
         if (this.state.date == 0) {
@@ -122,8 +124,8 @@ class UserForms extends React.Component {
                 <SubmitForm changeAmount={ this.changeAmount.bind(this) } placeholder={ 2 } />
                 <p> Currently showing available dates for { this.state.amountGuests } guests </p>
                 <Calendar
-                      selectedDate={ this.state.date }
-                      onDaySelected={ (date) => this.selectDate(date) }
+                      selectedDate={ this.state.calDate }
+                      onDaySelected={ (date) => this.isDateAvailable(date) }
                       transformDate={ (calendarDate) => {
                           const date = calendarDate.getDate();
                           ws.send({

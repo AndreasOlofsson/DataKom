@@ -28,7 +28,8 @@ class Calendar extends React.Component {
             month: props.month || now.getMonth() + 1,
             locale: props.locale,
             startOfWeek: startOfWeek,
-            calendarDates: {}
+            calendarDates: {},
+            selectedDate: props.selectedDate
         };
     }
 
@@ -57,7 +58,8 @@ class Calendar extends React.Component {
             year: nextProps.year || this.state.year,
             month: nextProps.month || this.state.month,
             locale: nextProps.locale,
-            startOfWeek: startOfWeek
+            startOfWeek: startOfWeek,
+            selectedDate: nextProps.selectedDate === null ? null : nextProps.selectedDate || this.state.selectedDate
         });
        
         this._isRendering = false;

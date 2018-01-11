@@ -1,5 +1,7 @@
 const WebSocket = require("ws");
 
+const config = require('./config.js');
+
 module.exports = (server, db) => {
     const wss = new WebSocket.Server({server});
 
@@ -23,6 +25,22 @@ module.exports = (server, db) => {
         });
     }
 
+    function getReservedTablesByDate(date, clientSelf) {
+        let reserved = 0;
+
+        wss.clients.forEach((client) => {
+            if (client === clientSelf) return;
+            if (client.isAlive !== false) {
+                if (client.reserved && client.reserved.date === date) {
+                    reserved += client.reserved.tables;
+                }
+            }
+        });
+
+        return reserved;
+    }
+
+
     async function getAvailable(ws, msg) {
         if (!msg["date"]) {
             throw 'Bad Request ("date" is missing)';
@@ -31,10 +49,12 @@ module.exports = (server, db) => {
         let date = parseDate(msg["date"]);
         let available;
 
+        let reservedTables = getReservedTablesByDate(`${ date[0] }-${ date[1] }-${ date[2] }`, ws);
+
         let amountGuests = msg.amountGuests && parseInt(msg.amountGuests);
 
         try {
-            available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])), amountGuests);
+            available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])), amountGuests + reservedTables * 4);
         } catch (e) {
             throw "Server Error (DB access failed)";
         }
@@ -176,6 +196,33 @@ module.exports = (server, db) => {
         };
     }
 
+    async function reserveTables(ws, msg) {
+        const date = parseDate(msg["date"]);
+
+        const amountGuests = parseInt(msg["amountGuests"]);
+
+        let reservedTables = getReservedTablesByDate(`${ date[0] }-${ date[1] }-${ date[2] }`, ws);
+
+        let available;
+
+        try {
+            available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])), amountGuests + reservedTables * 4);
+        } catch (e) {
+            throw "Server Error (DB access failed)";
+        }
+
+        if (available) {
+            ws.reserved = {
+                date: `${ date[0] }-${ date[1] }-${ date[2] }`,
+                tables: (amountGuests + config.guestGroupSize - 1) / config.guestGroupSize
+            };
+
+            return {};
+        } else {
+            throw "Tables not available";
+        }
+    }
+
     function validateEmail(email) {
         let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
@@ -225,7 +272,8 @@ module.exports = (server, db) => {
                         getAvailable: getAvailable,
                         getAvailableMonth: getAvailableMonth,
 
-                        setDayStatus: setDayStatus
+                        setDayStatus: setDayStatus,
+                        reserveTables: reserveTables
                     }[msg["request"]];
 
                     if (func) {
@@ -259,5 +307,18 @@ module.exports = (server, db) => {
                 }
             })();
         });
+
+        ws.on('pong', () => {
+            ws.isAlive = true;
+        });
     });
+
+    const interval = setInterval(() => {
+        wss.clients.forEach((ws) => {
+            if (ws.isAlive === false) return ws.terminate();
+
+            ws.isAlive = false;
+            ws.ping(() => {});
+        });
+    }, 30000);
 };
